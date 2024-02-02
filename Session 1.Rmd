@@ -1,0 +1,29 @@
+---
+title:
+subtitle: 
+author:
+date:
+output:
+  html_document:
+    toc: false
+    toc_float: true 
+    depth: 2
+    number_sections: false
+    theme: spacelab
+    highlight: pygments
+editor_options: 
+  markdown: 
+    wrap: 150
+---
+
+## Session 1 - Basics of data cleaning and mapping using telemetry data
+
+This session will address the fundamentals of data pre-processing and visualisation, utilising the tidyverse, sf, and ggspatial R packages. Participants will learn efficient data cleaning methods, organisation of telemetry data, and the creation of geospatial visualisations to gain insights into animal distributions and movements.
+
+
+
+
+
+
+
+

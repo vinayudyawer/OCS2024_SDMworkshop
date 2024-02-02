@@ -1,0 +1,29 @@
+---
+title:
+subtitle: 
+author:
+date:
+output:
+  html_document:
+    toc: false
+    toc_float: true 
+    depth: 2
+    number_sections: false
+    theme: spacelab
+    highlight: pygments
+editor_options: 
+  markdown: 
+    wrap: 150
+---
+
+## Session 2 - Using satellite telemetry data to define behaviours
+
+The second session will introduce participants to the aniMotum package, a valuable tool for analysing animal movement data. Attendees will acquire the skills to define distinct behavioural patterns exhibited by tracked animals.
+
+
+
+
+
+
+
+

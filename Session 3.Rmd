@@ -1,0 +1,29 @@
+---
+title:
+subtitle: 
+author:
+date:
+output:
+  html_document:
+    toc: false
+    toc_float: true 
+    depth: 2
+    number_sections: false
+    theme: spacelab
+    highlight: pygments
+editor_options: 
+  markdown: 
+    wrap: 150
+---
+
+## Session 3 - Basics of Species Distribution Models (SDMs)
+
+Species distribution models are instrumental in predicting and understanding the geographic ranges of species. In this session, we will delve into the use of dismo, SDMtune and sdmpredictors R packages, covering the basics of species distribution modelling. Participants will learn how to construct predictive models and assess habitat suitability for species.
+
+
+
+
+
+
+
+

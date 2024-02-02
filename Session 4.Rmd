@@ -1,0 +1,29 @@
+---
+title:
+subtitle: 
+author:
+date:
+output:
+  html_document:
+    toc: false
+    toc_float: true 
+    depth: 2
+    number_sections: false
+    theme: spacelab
+    highlight: pygments
+editor_options: 
+  markdown: 
+    wrap: 150
+---
+
+## Session 4 - Using telemetry data to define species distributions
+
+The final session focuses on integrating telemetry data with species distribution models, enabling the creation of comprehensive distribution maps and the analysis of how environmental variables influence species presence and absence.
+
+
+
+
+
+
+
+
