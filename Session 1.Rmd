@@ -20,8 +20,154 @@ editor_options:
 
 This session will address the fundamentals of data pre-processing and visualisation, utilising the tidyverse, sf, and ggspatial R packages. Participants will learn efficient data cleaning methods, organisation of telemetry data, and the creation of geospatial visualisations to gain insights into animal distributions and movements.
 
+# Load the data 
+```{r}
+# Load the whale shark data using the 'read.csv' function from local 
+# whaleshark <- read.csv('/location of data/Whalesharks_Maldives.csv', header = TRUE)
+
+# Load the whale shark data using the 'read.csv' function directly from github 
+whaleshark <- read.csv('https://raw.githubusercontent.com/vinayudyawer/OCS2024_SDMworkshop/main/Data/Whalesharks_Maldives.csv', header = TRUE)
+```
 
 
+# Exploring the data 
+```{r}
+# Load 'tidyverse' - which we will use for data cleaning, filtering, and visualization 
+library(tidyverse)
+```
+
+# Alternative reading of csv using tidyverse package
+```{r}
+# whaleshark <- read_csv('/location of data/Whalesharks_Maldives.csv')
+
+# You can also use read_csv to input data directly from a website URL
+whaleshark <- read_csv('https://raw.githubusercontent.com/vinayudyawer/OCS2024_SDMworkshop/main/Data/Whalesharks_Maldives.csv')
+```
+# Exploring the data 
+```{r}
+
+# Now we can use functions in tidyverse to explore, visualize, clean, and filter the data 
+
+# Lets explore first... We can use the 'class' function to see what class our data is in
+class(whaleshark)
+
+# Alternatively in the tidyverse we could use this code...
+whaleshark %>% class()
+
+# Now lets explore what form each of our columns are in
+class(whaleshark$ANIMALID) # character
+class(whaleshark$DATE) # character... interesting, we may need to change this!
+class(whaleshark$LONGITUDE) # numeric
+class(whaleshark$LATITUDE) # numeric
+class(whaleshark$ARGOSCLASS) # character
+
+
+# Now use piping to visualize other aspects of the data
+whaleshark %>% View()
+whaleshark %>% head() # first 6 rows by default
+whaleshark %>% tail(10) # specify we want to look at the last 10 rows
+whaleshark %>% nrow() # number of rows in the data frame
+whaleshark %>% ncol() # number of columns in the data frame
+whaleshark %>% str() # provides internal structure of an R object
+whaleshark %>% summary() # provides result summary of the data frame
+```
+
+# Data cleaning, manipulation, and filtering 
+```{r}
+# pipes can be used for single column within data frames
+whaleshark$ANIMALID <-
+  whaleshark$ANIMALID %>% as.factor()
+
+# pipes are used to conduct multiple functions on the dataset in a certain order
+whaleshark %>% 
+  subset(ANIMALID == "M-150") %>% # subset dataset to include only the whale shark 'M-150'
+  nrow() # number of rows (i.e. detections) from 'M-150'
+
+```
+
+# Dplyr: using dyplr for data wrangling
+
+Select
+```{r}
+library(dplyr)
+
+# Select the rows we are interested in
+whaleshark <- 
+  whaleshark %>% 
+  dplyr::select(ANIMALID, DATE, LONGITUDE, LATITUDE, ARGOSCLASS) %>% # columns we want to include
+#  select(-ANIMALID) # the minus symbol denotes columns we want to drop
+
+head(whaleshark) # look at our subsetted data
+
+# In this case, our data came pretty tidy and we probably want to hold on to all the columns for now. 
+```
+
+filter and arrange
+```{r}
+# as an example, we could filter to look at the detections of only one of our whale sharks 
+whaleshark %>%
+  filter(ANIMALID == 'M-150') %>%
+  arrange(DATE) # arrange M-150's detections in chronological order
+
+# But for cleaning our data, we will need to filter out some of the not quality data in the argos class column 
+whaleshark %>%
+  #filter(ARGOSCLASS == ) %>%
+```
+
+Group by and summarise
+```{r}
+whaleshark %>%
+  group_by(ANIMALID) %>%
+  summarise(NumDetections = n()) # summarise number of detections per tagged shark
+
+```
+
+mutate 
+```{r}
+whaleshark <-
+  whaleshark %>%
+  mutate(date = as.Date(DATE)) # adding a column to the blacktip data with date of each detection
+
+```
+lubridate 
+ *Need to figure out what timezone the DATE field is in. 
+ *Then see if I need to convert it to be in local time (probably not since its satellite data???)
+ * Separate out into a date and a time column
+```{r}
+library(lubridate)
+
+#This is old code from vinays SEA 2023 workshop, needs to be ammended. 
+whaleshark %>% 
+  mutate(local_date_time = with_tz(date_time, tzone = "Australia/Brisbane")) %>% # convert to local "Australia/Brisbane" date time (UTC + 10hrs)
+  mutate(date = date(local_date_time)) # use lubridate to update local date time into a date field
+
+```
+
+# Data visualization using ggplot 
+
+```{r}
+library(ggplot2)   
+
+whaleshark %>%
+  group_by(ANIMALID, date) %>% 
+  summarise(daily_detections = n()) %>% # use summarise to calculate numbers of detections per day per animal
+  ggplot(mapping = aes(x = ANIMALID, y = daily_detections)) + # define the aesthetic map (what to plot)
+  xlab("Tag") + ylab("Number of detections per day") +
+  geom_boxplot() # define the geometric object (how to plot it).. in this case a boxplot 
+
+
+whaleshark %>%
+  ggplot(mapping = aes(x = date, y = ANIMALID)) + 
+  xlab("Date") + ylab("Tag") +
+  geom_point()
+
+```
+
+# Introduction to the sf package for spatial mapping 
+
+
+
+# Introduction to the spatial package for spatial mapping 
 
 
 

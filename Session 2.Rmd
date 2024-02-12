@@ -22,8 +22,127 @@ The second session will introduce participants to the aniMotum package, a valuab
 
 
 
+# Step 1: Input and format data 
+
+```{r}
+library(tidyverse)
+library(aniMotum)
+
+raw_data <- read_csv('https://raw.githubusercontent.com/vinayudyawer/OCS2024_SDMworkshop/main/Data/Whalesharks_Maldives.csv')
+
+head(raw_data)
+
+```
+
+aniMotum expects the data to be in a specific form. 'Argos Least-Squares and GPS data should have 5 columns in the following order: id, date, lc, lon, lat. Where date can be a POSIC object or a text string in YYYY-MM-DD HH:MM:SS format. If a text string is supplied then the time zone is assumed to be UTC. Location class can include the following values: 3, 2, 1, 0, A, B, Z, G, or GL. The latter two are for GPS locations and 'Generic Locations', respectively. Class Z values are assumed to have error variances 10x smaller than Argos class 3 variances, but unlike Argos error variances the GPS variances are the same for longitude and latitude.' (From Help viewer)
+
+Argos Kalman filter data should have 8 columns, the above 5 plus smaj, smin, eor that contain Argos error ellipse variables (in m for smaj, smin and deg for eor)
+
+# Format the data 
+```{r}
+# Using transmute from the Dplyr package 
+tagdat <- raw_data %>%
+  dplyr::transmute(id = ANIMALID,
+              date = DATE, 
+              lc= ARGOSCLASS,
+              lon = LONGITUDE, 
+              lat = LATITUDE)
+
+# Using format_data from the aniMotum Package) 
+tagdat2 <- format_data(
+  raw_data,
+  id = "ANIMALID",
+  date = "DATE",
+  lc = "ARGOSCLASS",
+  coord = c("LONGITUDE", "LATITUDE")
+)
+
+head(tagdat)
+```
+
+# Lets look at the quality of the data by investigating the ARGOS class 
+```{r}
+tagdat %>% 
+  group_by(id, lc) %>% 
+  summarise(num_pos = n()) %>% 
+  ggplot(aes(x = id, y = num_pos, fill = lc)) +
+  geom_col(position = "fill") +
+  labs(x = "Tag ID", y = "Proportion of fixes", fill = "Location\nClass") +
+  theme_bw()
+```
+
+It looks like a large proportion of our data have low accuracy position estimates (Location Classes A and B). This is often the same in many tracking studies. At this stage, we can make a decision on if we want to subset our tracking data to only include certain Location Classes, to make sure our positional data are accurate. However another way to get more accurate positions and retain as much data as possible, is to model the data with the estimated error to predict more accurate positions.
+
+# Step 2: Choose and fit a movement model 
+
+Lets try and retain as much data as we can and move onto the second step; choosing and fitting a movement model. This step allows us to model the data we have, and gives us the ability to then predict positions along the animals movement path to produce positions at fixed time periods. This becomes important when we want to calculate metrics of movements to help define movement behaviours. There are three main movement processes that aniMotum provides:
+
+Random Walk (RW) models - where movements between positions are modeled to be random in direction and magnitude.
+
+Correlated Random Walk (CRW) model - where movements between positions are modeled as random and correlated in direction and magnitude.
+
+Continuous-time Move Persistence (MP) model - where movements between positions are modeled as random with correlations in direction and magnitude that vary in time.
+
+"The MP approach is most appropriate for fitting to irregularly timed and error-prone Argos data as both aspects are taken into account explicitly". (Johnson 2023)
+
+You can explore the specifics of this package from the vignette here.
+
+For our data, we will use the Continuous-time move persistence model (‘mp’ option in the code). We can run this model by simply using the fit_ssm() function in aniMotum. The function requires some basic information on the dispersal ability of our study species. At the least, it asks for our estimate of swimming speed of our animal. Whale sharks are pretty slow swimming sharks and their average speed has been measured to be about 1.5 m/s. We can also use this function to predict positions at fixed time periods. Here lets predict a position for each day of the tracking period.
+
+```{r}
+# Fitting a Continuous-time move persistence (MP) model to our data 
+
+fit <-
+  fit_ssm(x = tagdat, 
+          vmax = 1.5, ## maximum speed of whale sharks (in m/s)
+          model = "mp", ## Move persistence model
+          time.step = 24) ## predict positions every 24 hours
+
+```
 
 
 
 
+
+
+
+# Lets visualize and explore the outputs of the model: 
+```{r}
+## Lets have a look at the fitted component of the model 
+## (original data, corrected by including positional error)
+
+plot(fit, 
+     what = "fitted", ## what component of the model to plot ('fitted', 'predicted' or 'rerouted')
+     type = 2) ## type of plot to make
+     #pages = 1, 
+    # ncol = 2)
+
+
+
+
+```
+
+# Step 3: Check model fit and see what the predictions look like
+```{r}
+resid <- osar(fit)
+
+## Lets check our model fit for both tracks
+plot(resid, type = "qq")
+plot(resid, type = "acf")
+
+#We can also look at how closely the predicted positions compare to the ‘corrected’ fitted positions. This is often #the best way to ascertain if the model you produced is a good fit. You can play around with the model parameters #(e.g., vmax) to make sure the model represents the biology of the animal you are tracking
+
+plot(fit, 
+     what = "predicted", 
+     type = 2,
+     pages = 1,
+     ncol = 2)
+
+```
+
+# Step 4: Visualize move persistence estimates 
+
+# Step 5: Simulatr & or re-route tracks
+
+# Now that we have a 6 predicted animal tracks, we can use gganimate to create animations of the animal movement. 
 
