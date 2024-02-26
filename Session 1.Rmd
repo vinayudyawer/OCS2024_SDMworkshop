@@ -27,7 +27,10 @@ Before we can analyze these data, we first need to read the dataset into R. The 
 
 In this session, we will explore how import a .csv file using base R and using tidyverse. 
 
+# Using base R
+
 A .csv file can be imported into R using the read.csv base function, and by telling R where the file is located on your computer. 
+
 ```{r}
 # Load the whale shark data using the 'read.csv' function from your local repository
 # whaleshark <- read.csv('/location of data/Whalesharks_Maldives.csv', header = TRUE)
@@ -52,7 +55,7 @@ class(whaleshark$ARGOSCLASS) # character
 ```
 So far everything is looking good! But you'll notice that our 'DATE' field has been read in as a 'character'. This is fine for now, but in order to do more complex visualizations of the data, we will need R to recognize the 'DATE' field as a 'date time object'. Luckily, there is an AMAZING package in R that will easily do this for us! 
 
-Lubridate
+Lubridate package 
 ```{r}
 #First, lets load up lubridate using the library package. 
 library(lubridate)
@@ -80,12 +83,11 @@ whaleshark$time <- format(whaleshark$DATE, "%H:%M:%S") # create a new column wit
 ```
 
 
-# Alternative reading of csv using tidyverse package. 
+# Tidyverse package 
 
 Alternatively, we can use the tidyverse package to do everything we just did above in base R. There are many reasons why various coders prefer tidyverse or base R. But However, the ease of data manipulation in tidyverse makes it extremely helpful in handling data. 
 
 First lets load up tidyverse. 
-
 ```{r}
 # Load 'tidyverse' - which we will use for data cleaning, filtering, and visualization 
 library(tidyverse)
@@ -100,21 +102,20 @@ Now lets see an example of it's usefulness. Above, we loaded the data using base
 whaleshark <- read_csv('https://raw.githubusercontent.com/vinayudyawer/OCS2024_SDMworkshop/main/Data/Whalesharks_Maldives.csv')
 ```
 
-
 As you can see, the date field is already a dttm object. How clever of tidyverse to automatically know this! 
 
 # Exploring the data 
 
-Now that we've loaded our tracking dataset, let's explore the data! 
+Now that we've loaded our tracking dataset, let's explore the data! We are going to use the read_csv() version of the data, where the 'DATE' field is already a 'date time object'. 
 
-The easiest way to do this us using pipes, which we can get either from base r in the format |> or %>%, which is riginally from the magrittr package but has been imported to the tidyverse. While both these pipes are *essentially* do the same function, there can sometimes be crucial differences. However, for most coders, the differences are unimportant and you can choose which pipe you prefer. If you're a more advanced coder, you can read about the differences in pipes here: https://www.tidyverse.org/blog/2023/04/base-vs-magrittr-pipe/
+The easiest way to do explore our data is by using pipes, which we can get either from base r in the format '|>' or from tidyverse (originally from the magrittr package) in the format'%>%'. While both these pipes are *essentially* do the same function, there can sometimes be crucial differences. However, for most coders, the differences are unimportant and you can choose which pipe you prefer. 
 
-For the purpose of this workshop, we will be using the %>% pipe, because this is what most people are familiar with. 
-%>% is an infix operator. This means it takes two operands, left and right.
-‘Pipes’ the output of the last expression/function (left) forward to the first input of the next function (right).
+If you're a more advanced coder, you can read about the differences in pipes [here](https://www.tidyverse.org/blog/2023/04/base-vs-magrittr-pipe/) before choosing your piping preference. 
+
+For the purpose of this workshop, we will be using the '%>%' pipe, because this is what most people are familiar with. 
+%>% is an infix operator. This means it takes two operands, left and right and ‘pipes’ the output of the last expression/function (left) forward to the first input of the next function (right).
 
 ```{r}
-
 # For example, above we used the code ' class(whaleshark)' to see what class our data was in. In tidyverse, we can do this same operation using a pipe...
 
 whaleshark %>% class()
@@ -123,9 +124,9 @@ whaleshark %>% class()
 
 Benefits of pipes %>%
 
-Functions flow in natural order that tells story about data.
-Code effects are easy to reason about by inserting View() or head() into pipe chain.
-Common style makes it easy to understand collaborator (or your own) code.
+* Functions flow in natural order that tells story about data.
+* Code effects are easy to reason about by inserting View() or head() into pipe chain.
+* Common style makes it easy to understand collaborator (or your own) code.
 
 We can quickly explore our data using the following pipes: 
 ```{r}
@@ -152,7 +153,7 @@ But the main benefit to pipes is that they can be used to conduct multiple funct
 
 # Data manipulation and filtering 
 ```{r}
-# For example, lets say we want to figure out how many detections we have for whale shark 'M-150'...
+# For example, lets figure out how many detections we have for whale shark 'M-150'...
 
 whaleshark %>% 
   subset(ANIMALID == "M-150") %>% # subset dataset to include only the whale shark 'M-150'
@@ -160,7 +161,7 @@ whaleshark %>%
 
 ```
 
-Pipes can also be used to pre-process our data before plotting them. Lets now use pipes to plot a simple plot of number of detections of M-150 over time.
+Pipes can also be used to pre-process our data before plotting them. Lets now use pipes to create a simple plot of number of detections of M-150 over time.
 
 ```{r}
 whaleshark %>% # take the whale shark df
@@ -171,28 +172,31 @@ whaleshark %>% # take the whale shark df
 ```
 
 
-# Dplyr: using dyplr for data wrangling
+# Dplyr package: using dyplr for data wrangling
 
-dplyr is the data wrangling workhorse of the tidyverse.
-Provides functions, verbs, that can manipulate data into the shape you need for analysis.
-Has many backends allowing dplyr code to work on data stored in SQL databases and big data clusters.
-Works via translation to SQL. Keep an eye out for the SQL flavour in dplyr
-Basic vocabulary
-
-select() columns from a tibble
-filter() to rows matching a certain condition
-arrange() rows in order
-mutate() a tibble by changing or adding rows
-group_by() a variable
-summarise() data over a group using a function
-Check out this useful online cheatsheet for data wrangling. link: https://rstudio.github.io/cheatsheets/html/data-transformation.html?_gl=1*1osjb37*_ga*OTE3OTY4MTUzLjE2OTMyODk4OTM.*_ga_2C0WZ1JHG0*MTY5MzQ1NDM4NS4yLjAuMTY5MzQ1NDM4NS4wLjAuMA..
+* dplyr is the data wrangling workhorse of the tidyverse.
+* Provides functions, verbs, that can manipulate data into the shape you need for analysis.
+* Has many backends allowing dplyr code to work on data stored in SQL databases and big data clusters.
+* Works via translation to SQL. Keep an eye out for the SQL flavour in dplyr
 
 Load up the dplyr package
 ```{r}
 library(dplyr)
 ```
 
+Basic vocabulary
+
+* select() columns from a tibble
+* filter() to rows matching a certain condition
+* arrange() rows in order
+* mutate() a tibble by changing or adding rows
+* group_by() a variable
+* summarise() data over a group using a function
+
+Check out this useful online [cheatsheet](https://rstudio.github.io/cheatsheets/html/data-transformation.html?_gl=1*1osjb37*_ga*OTE3OTY4MTUzLjE2OTMyODk4OTM.*_ga_2C0WZ1JHG0*MTY5MzQ1NDM4NS4yLjAuMTY5MzQ1NDM4NS4wLjAuMA..) for data wrangling.
+
 Select
+
 We can use the select function in dplyr to choose the columns we want to include for our analyses and plotting
 ```{r}
 # Select the rows we are interested in
@@ -217,7 +221,7 @@ whaleshark %>%
 
 ```
 
-Group by and summarise
+group_by and summarise
 
 Determine the total number of detections for each tagged shark
 ```{r}
@@ -225,10 +229,10 @@ whaleshark %>%
   group_by(ANIMALID) %>%
   summarise(NumDetections = n()) # summarise number of detections per tagged shark
 
-# Now we can see that there is huge variability in number of detections for individuals. Whale shark M-130 has by far the most detections (202), while whale shark M-129 only has four detections. 
+# Now we can see that there is huge variability in number of detections for individuals. Whale shark M-130 has by far the most detections (202), while whale shark M-129 only has four detections. This might have implications for our modelling in session 2...
 ```
 
-Mutate 
+mutate 
 
 Adding and removing data to the data frame through a pipe
 ```{r}
@@ -245,45 +249,84 @@ whaleshark <-
 
 
 # Data visualization using ggplot 
+
 ggplot2 is a powerful data visualization package for the R programming language. The package makes it very easy to generate some very impressive figures and utilise a range of colour palettes, taking care of many of the fiddly details that can make plotting graphs in R a hassle.
 
 The system provides mappings from your data to aesthetics which are used to construct beautiful plots.
 
-Documentation for ggplot2 can be found here. (https://ggplot2.tidyverse.org/)
+Documentation for ggplot2 can be found [here](https://ggplot2.tidyverse.org/).
 
-There is also this awesome cheetsheet for ggplot2 https://rstudio.github.io/cheatsheets/html/data-visualization.html?_gl=1*hd7s9e*_ga*OTE3OTY4MTUzLjE2OTMyODk4OTM.*_ga_2C0WZ1JHG0*MTY5MzQ1NDM4NS4yLjAuMTY5MzQ1NDM4NS4wLjAuMA..
+There is also this awesome [cheetsheet] (https://rstudio.github.io/cheatsheets/html/data-visualization.html?_gl=1*hd7s9e*_ga*OTE3OTY4MTUzLjE2OTMyODk4OTM.*_ga_2C0WZ1JHG0*MTY5MzQ1NDM4NS4yLjAuMTY5MzQ1NDM4NS4wLjAuMA..) for ggplot2
 
+Lets load up the package
 ```{r}
 library(ggplot2)  
 ```
 
-# Define some colors for individuals 
+
+**ggplot2 grammar**
+
+The basic idea: independently specify plot building blocks and combine them to create just about any kind of graphical display you want.
+
+Building blocks of a graph include:
+
+* data
+* aesthetic mapping
+* geometric object
+* statistical transformations
+* scales
+* coordinate system
+* position adjustments
+* faceting
+
+**Aesthetic Mapping**
+
+In ggplot2, aesthetic means “something you can see”. Aesthetic mapping (i.e., with aes()) only says that a variable should be mapped to an aesthetic. It doesn’t say how that should happen. For example, when mapping a variable to shape with aes(shape = x) you don’t say what shapes should be used. Similarly, aes(color = z) doesn’t say what colors should be used. Describing what colors/shapes/sizes etc. to use is done by modifying the corresponding scale.
+
+In ggplot2 scales include:
+
+* position (i.e., on the x and y axes)
+* color (“outside” color)
+* fill (“inside” color)
+* shape (of points)
+* linetype
+* size
+Each type of geom accepts only a subset of all aesthetics–refer to the geom help pages to see what mappings each geom accepts. Aesthetic mappings are set with the aes() function.
+
+
+**Geometic Objects (geom)**
+
+Geometric objects are the actual marks we put on a plot. Examples include:
+
+* points (geom_point, for scatter plots, dot plots, etc)
+* lines (geom_line, for time series, trend lines, etc)
+* boxplot (geom_boxplot, for, well, boxplots!) A plot must have at least one geom; there is no upper limit. You can add a geom to a plot using the + operator
+
+You can get a list of available geometric objects using the code below:
 ```{r}
-IDcols <- c("#0cb2af", "#a1c65d", "#fac723", "#f29222", "#e95e50", "#936fac")
-names(IDcols) <- c("M-111", "M-129", "M-130", "M-149", "M-150", "M-156")
+help.search("geom_", package = "ggplot2")
 ```
+
 
 # Basic plotting and data visualization 
 
 In the script below, we call in the whaleshark dataset, perform some operations on it, and then pipe it into a ggplot() function, in this case we are using geom_boxplot() to create a box plot
-
 ```{r}
 whaleshark %>%
   group_by(ANIMALID, DATE) %>% 
   summarise(daily_detections = n()) %>% # use summarise to calculate numbers of detections per day per animal
   ggplot(mapping = aes(x = ANIMALID, y = daily_detections, color = ANIMALID)) + # define the aesthetic map (what to plot)
-  scale_color_manual(values = IDcols) +
   xlab("Tag") + ylab("Number of detections per day") +
   geom_boxplot() # define the geometric object (how to plot it).. in this case a boxplot 
 ```
+Here, we can visualize the range in number of detections per day per shark. Shark M 130 has the greatest range in detections per day, as well as highest number of detections in one day. Conversely, shark M 130 has the least. 
+
 
 We can also use an 'abacus plot' to visualize temporal patterns of shark detections. This plot can help quickly represent temporal patterns in animal detection frequency. 
-
 ```{r}
 
 whaleshark %>%
   ggplot(mapping = aes(x = DATE, y = ANIMALID, color = ANIMALID)) + 
-  scale_color_manual(values = IDcols) +
   xlab("Date") + ylab("Tag") +
   geom_point()
 
@@ -296,44 +339,39 @@ Now we can see that Sharks M-130 and M-150 have the largest date range of detect
 
 
 
+
+
 # Introduction to the sf package for spatial mapping 
 
 Up until this point, we've been visualizing, manipulating, and cleaning the data by looking at number of individuals, number of detections, and date range of detections. But since this is spatial data, we can look more deeply into the longitude and latitude columns to understand where exactly these animals are. 
 
-Even though people loooooove to analyze spatial data using GIS, R is actually also great for analyzing spatial data, it's just a little harder to wrap your head around. 
+R offers a variety of functions for importing, manipulating, analysing and exporting spatial data. Although one might at first consider this to be the exclusive domain of GIS software, using R can frequently provide a much more lightweight, yet equally effective solution that embeds within a larger analytic workflow.
 
 One of the tricky aspects of pulling spatial data into your analytic workflow is that there are numerous complicated data formats. In fact, even within R itself, functions from different user-contributed packages often require the data to be structured in very different ways. The good news is that just like the tidyverse package family, efforts are underway to standardize spatial data classes in R.
 
 This movement is facilitated by sf, an important base package for spatial operations in R. It provides definitions for basic spatial classes (points, lines, polygons, pixels, and grids) in an attempt to unify the way R packages represent and manage these sorts of data, and uses grammer that can be integrated into tidyverse script. It also includes some core functions for creating and manipulating these data structures. The hope is that all spatial R packages will use (or at least provide conversions to) the ‘Spatial’ data class and its derivatives, as now defined in the sf package.
 
-Here is a very useful style guide for coding using the sf package. (https://r-spatial.github.io/sf/)
+[Here](https://r-spatial.github.io/sf/) is a very useful style guide for coding using the sf package. 
 
 
-Coordinate Reference Systems (CRS)
+**Coordinate Reference Systems (CRS)**
 
 Central to working with spatial data, is that these data have a coordinate reference system (CRS) associated with it. Geographical CRS are expressed in degrees and associated with an ellipse, a prime meridian and a datum. Projected CRS are expressed in a measure of length (meters) and a chosen position on the earth, as well as the underlying ellipse, prime meridian and datum.
 
-Most countries have multiple coordinate reference systems, and where they meet there is usually a big mess — this led to the collection by the European Petroleum Survey Group (EPSG) of a geodetic parameter dataset.
+Most countries have multiple coordinate reference systems, and where they meet there is usually a big mess — this led to the collection by the **European Petroleum Survey Group (EPSG)** of a geodetic parameter dataset.
 
 The EPSG list among other sources is used in the workhorse PROJ.4 library, and handles transformation of spatial positions between different CRS. This library is interfaced with R in the rgdal package, and the CRS is defined partly in the proj package and partly in rgeos.
 
 In the next step, we will convert our blacktip dataset (blacktip) into a spatial object and specify the CRS. We therefore need to refer to the correct CRS information associated with the spatial data.
 
-For simplicity, each projection can be referred to by a unique ID from the European Petroleum Survey Group (EPSG) geodetic parameter dataset. You can find the relevant EPSG code for your coordinate system from this website. There, simply enter in a key word in the search box and select from the list the correct coordinate system. There is a map image in the top right of the site to help you.
+For simplicity, each projection can be referred to by a unique ID from the **European Petroleum Survey Group (EPSG)** geodetic parameter dataset. You can find the relevant EPSG code for your coordinate system from this [website](https://epsg.io/). There, simply enter in a key word in the search box and select from the list the correct coordinate system. There is a map image in the top right of the site to help you.
 
 The sf package: 
-The sf package makes it easy to convert any data frame into a spatial object which we can then plot and explore using other packages. The conversion from data frame to a spatial object can be done easily using the st_as_sf() function. Lets convert two data sets into spatial objects so we can plot them out. The main information we need to provide to convert it to a spatial object will be the names of the columns that denote the coordinates, and the CRS for the data. Our whaleshark data were recorded in the GDA 94 geographic datum in decimal degrees, which is the equivalent EPSG code of 3577
+The sf package makes it easy to convert any data frame into a spatial object which we can then plot and explore using other packages. The conversion from data frame to a spatial object can be done easily using the st_as_sf() function. Lets convert two data sets into spatial objects so we can plot them out. The main information we need to provide to convert it to a spatial object will be the names of the columns that denote the coordinates, and the CRS for the data. Our whaleshark data were recorded in the GDA 94 geographic datum in decimal degrees, which is the equivalent EPSG code of [3577](https://epsg.io/3577)
 
 First lets load the sf package 
 ```{r}
 library(sf)
-```
-
-Next lets import the dataset
-```{r}
-whaleshark <- 
-  read_csv('https://raw.githubusercontent.com/vinayudyawer/OCS2024_SDMworkshop/main/Data/Whalesharks_Maldives.csv')
-
 ```
 
 # st_as_sf() 
@@ -355,12 +393,12 @@ head(whaleshark_sf)
 We can make a simple plot to visualize the points spatially using the ggplot2 package, specifically the geom_sf() function 
 ```{r}
 ggplot(whaleshark_sf, aes(color = ANIMALID)) + 
-  geom_sf()
+  geom_sf() #Can we connect these points with lines? 
 ```
 Amazing! It worked! The data is looking MESSY though. We can see that shark M-150 has the most detections, and also has the largest spatial range of detections. 
 
 
-# Introduction to the spatial package for spatial mapping 
+# Introduction to the ggspatial package for spatial mapping 
 
 The above plot is great for visualizing the data but lets say we want to make a more formal, polished figure that is publication ready. The ggspatial package is a very useful package that allows you to integrate basemaps to your plots. Adding basemaps means you can do more complex mapping without the need to import multiple shapefules. These basemaps also include satellite imagery which means you can produce nice maps with a variety of basemaps in the background. The grammer used by the ggspatial package is similar to that of ggplot2, which makes swapping between the two easy. 
 
@@ -370,8 +408,6 @@ However, some of these providers (such as Google and Mapbox) require users to re
 
 
 Let's focus in on the shark we have the most data for, M-150, and plot detections over a basic basemap using the OpenStreetMap provider. We do this by using the annotation_map_tile() function, followed by adding the spatial layer using layer_spatial() 
-
-
 ```{r}
 library(ggspatial)
 
@@ -440,7 +476,28 @@ ggplot() +
 
 
 
-# gganimate () 
+
+
+# gganimate package
+
+The gganimate package works to animate your ggplot2 creations, which is an especially helpful feature for visualising telemetry data by creating animations of animal movement over time. The gganimate package works alongside the ggplot2 package by adding layers to animate the created plot. 
+
+* transition_*() defines how the data should be spread out and how it relates to itself across time.
+* view_*() defines how the positional scales should change along the animation.
+* shadow_*() defines how data from other points in time should be presented in the given point in time.
+* enter_*()/exit_*() defines how new data should appear and how old data should disappear during the course of the animation.
+* ease_aes() defines how different aesthetics should be eased during transitions.
+
+More information on the gganimate package can be found [here](https://gganimate.com/). 
+
+Lets try to animate our .....
+
+```{r}
+
+
+```
+
+
 
 # Mapview package 
 
