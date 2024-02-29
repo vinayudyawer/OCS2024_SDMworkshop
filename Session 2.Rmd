@@ -98,51 +98,164 @@ fit <-
           model = "mp", ## Move persistence model
           time.step = 24) ## predict positions every 24 hours
 
+head(fit)
 ```
 
+So if we take a look at the fit object, we can see that actually the model only converged for one of our sharks - M 150. We don't have enough data for the other sharks for the models to converge. So lets now run another model, but this time lets use a time step of 48 hours. 
 
+```{r}
+fit2 <-
+  fit_ssm(x = tagdat, 
+          vmax = 1.5, ## maximum speed of whale sharks (in m/s)
+          model = "mp", ## Move persistence model
+          time.step = 48) ## predict positions every 48 hours
 
+head(fit2)
+```
 
+This is a bit better! When predicting on a 48 hour time step, the models converged for M 130, M 150, and M 156. Let's focus on these three sharks. 
 
+```{r}
+fit3 <- tagdat %>%
+  dplyr::filter(id %in% c("M-130", "M-150", "M-156")) %>%
+  fit_ssm(vmax = 1.5, ## maximum speed of whale sharks (in m/s)
+          model = "mp", ## Move persistence model
+          time.step = 48) ## predict positions every 48 hours
 
+```
 
 # Lets visualize and explore the outputs of the model: 
 ```{r}
 ## Lets have a look at the fitted component of the model 
 ## (original data, corrected by including positional error)
 
-plot(fit, 
+plot(fit3, 
      what = "fitted", ## what component of the model to plot ('fitted', 'predicted' or 'rerouted')
-     type = 2) ## type of plot to make
-     #pages = 1, 
-    # ncol = 2)
+     type = 2, ## type of plot to make
+     pages = 1, 
+     ncol = 3)
+```
+In the above plots, the blue are the original positions, the yellow are where the model has 'corrected' positions, and the black 'x's are outliers identified by the model. 
 
 
+# Step 3: Check model fit 
 
+Next we can look at the predicted component of the model and see how well the model fit the data. We can use the osar() function for this: 
 
+```{r}
+resid <- osar(fit3)
 ```
 
-# Step 3: Check model fit and see what the predictions look like
 ```{r}
-resid <- osar(fit)
-
 ## Lets check our model fit for both tracks
 plot(resid, type = "qq")
 plot(resid, type = "acf")
 
-#We can also look at how closely the predicted positions compare to the ‘corrected’ fitted positions. This is often #the best way to ascertain if the model you produced is a good fit. You can play around with the model parameters #(e.g., vmax) to make sure the model represents the biology of the animal you are tracking
+```
 
-plot(fit, 
+We can also look at how closely the predicted positions compare to the ‘corrected’ fitted positions. This is often the best way to ascertain if the model you produced is a good fit. You can play around with the model parameters (e.g., vmax) to make sure the model represents the biology of the animal you are tracking
+
+```{r}
+plot(fit3, 
      what = "predicted", 
      type = 2,
      pages = 1,
-     ncol = 2)
+     ncol = 3)
 
 ```
 
-# Step 4: Visualize move persistence estimates 
+# Step 4: Visualize move persistence estimates
 
-# Step 5: Simulatr & or re-route tracks
+What is 'move persistence'? 
 
-# Now that we have a 6 predicted animal tracks, we can use gganimate to create animations of the animal movement. 
+Move persistence is an index of movement behaviour and is a continuous value between 0-1. The value represents changes in movement pattern for that individual based on autocorrelation in speed and direction (see details [here](https://esajournals.onlinelibrary.wiley.com/doi/10.1002/ecy.2566)) We can look at the patterns in this metric for each tracked individual spatially and over the tracking period. Lower move persistence values are related to slower movements that are often associated with area restricted searching behaviours often associated with foraging, with higher move persistence values representing more linear movements that are associated with migratory behaviours. 
+Since we ran the 'mp' model, we now have values of move persistence for each predicted location and can explore a bit more into our animal's movement behaviours. 
+
+```{r}
+plot(fit3,
+     what = "predicted",
+     type = 3,
+     pages = 1,
+     ncol = 3,
+     normalise = TRUE)
+
+plot(fit3,
+     what = "predicted",
+     type = 4,
+     pages = 1,
+     ncol = 3,
+     normalise = TRUE)
+
+```
+
+We can use the grab() function to extract specific components of the model output to have a closer look at them, or produce our own maps using previously covered packages (eg., ggspatial or mapview). The grab() function also allows users to extract the positional data as a sf object and makes it so easy to plot them using other packages! 
+
+** Need to fix the maps below ~!!!!
+
+```{r}
+# Lets plot our own version of the predicted component using mapview
+pred_data <- grab(fit3,
+                  what = "predicted",
+                  as_sf = TRUE,
+                  normalise = TRUE)
+
+# Lets convert the point dataset into a path using the 'sf' package
+library(sf)
+
+pred_path <- 
+  pred_data %>%
+  group_by(id) %>%
+  summarise(do_union = FALSE) %>%
+  st_cast("LINESTRING")
+
+# Now lets use our lovely mapview and leaflet knowledge from session one to plot a nice, interactive plot of move persistence data! 
+library(leaflet)
+library(mapview)
+
+color_palette <- colorRampPalette(hcl.colors(10, palette = "Reds 3"))
+
+m_130 <-
+  mapview(pred_path %>% filter(id %in% "M-130"), alpha = 1, color = "white", homebutton = F, 
+          legend = F, map.type = c("Esri.WorldImagery"), layer.name = "M-130") +
+  mapview(pred_data %>% filter(id %in% "M-130"), alpha.regions = 1, alpha = 0, zcol = "g",
+          homebutton = F, legend = F, cex = 3, layer.name = "M-130", col.regions = color_palette(100)) +
+  mapview(pred_data %>% filter(id %in% "M-130") %>% slice(1), alpha.regions = 1, alpha = 0,
+          col.regions = "darkgreen", homebutton = F, legend = F, layer.name = "M-130") +
+  mapview(pred_data %>% filter(id %in% "M-130") %>% slice(n()), alpha.regions = 1, alpha = 0,
+          col.regions = "firebrick", homebutton = F, legend = F, layer.name = "M-130")
+
+m_150 <-
+  mapview(pred_path %>% filter(id %in% "M-150"), alpha = 1, color = "white", homebutton = F, 
+          legend = F, map.type = c("Esri.WorldImagery"), layer.name = "M-150") +
+  mapview(pred_data %>% filter(id %in% "M-150"), alpha.regions = 1, alpha = 0, zcol = "g",
+          homebutton = F, legend = F, cex = 3, layer.name = "M-150", col.regions = color_palette(100)) +
+  mapview(pred_data %>% filter(id %in% "M-150") %>% slice(1), alpha.regions = 1, alpha = 0,
+          col.regions = "darkgreen", homebutton = F, legend = F, layer.name = "M-150") +
+  mapview(pred_data %>% filter(id %in% "M-150") %>% slice(n()), alpha.regions = 1, alpha = 0,
+          col.regions = "firebrick", homebutton = F, legend = F, layer.name = "M-150")
+
+mm <- 
+(m_130 + m_150)@map %>% 
+  addLayersControl(
+        baseGroups = c("M-130", "M-150"),
+        options = layersControlOptions(collapsed = FALSE)) %>% 
+  addLegend(colors = color_palette(11), 
+            labels = round(seq(0, 1, by = 0.1), 2),
+            title = "g", opacity = 1)
+
+mm
+```
+
+# Step 5: Simulate & or re-route tracks
+The aniMotum package also allows users to use your fitted model to simulate similar tracks, which is useful if you want to compare your animal's track with other 'null' models. This allows for further hypothesis testing and analyses like resource selection functions. Here, we will use the 
+
+```{r}
+
+
+```
+
+# Step 6: Animate the tracks using gganimate! 
+
+
+# add pseudo absenses (which we will need for sdm)
 
