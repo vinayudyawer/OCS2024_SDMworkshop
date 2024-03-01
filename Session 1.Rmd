@@ -367,7 +367,7 @@ In the next step, we will convert our blacktip dataset (blacktip) into a spatial
 For simplicity, each projection can be referred to by a unique ID from the **European Petroleum Survey Group (EPSG)** geodetic parameter dataset. You can find the relevant EPSG code for your coordinate system from this [website](https://epsg.io/). There, simply enter in a key word in the search box and select from the list the correct coordinate system. There is a map image in the top right of the site to help you.
 
 The sf package: 
-The sf package makes it easy to convert any data frame into a spatial object which we can then plot and explore using other packages. The conversion from data frame to a spatial object can be done easily using the st_as_sf() function. Lets convert two data sets into spatial objects so we can plot them out. The main information we need to provide to convert it to a spatial object will be the names of the columns that denote the coordinates, and the CRS for the data. Our whaleshark data were recorded in the GDA 94 geographic datum in decimal degrees, which is the equivalent EPSG code of [3577](https://epsg.io/3577)
+The sf package makes it easy to convert any data frame into a spatial object which we can then plot and explore using other packages. The conversion from data frame to a spatial object can be done easily using the st_as_sf() function. Lets convert two data sets into spatial objects so we can plot them out. The main information we need to provide to convert it to a spatial object will be the names of the columns that denote the coordinates, and the CRS for the data. Our whaleshark data were recorded in the WGA 84 geographic datum in decimal degrees, which is the equivalent EPSG code of [4326](https://epsg.io/4326)
 
 First lets load the sf package 
 ```{r}
@@ -380,7 +380,7 @@ library(sf)
 
 whaleshark_sf <-
   whaleshark %>% 
-    st_as_sf(coords = c("LONGITUDE", "LATITUDE"), crs= 3577, remove = F)
+    st_as_sf(coords = c("LONGITUDE", "LATITUDE"), crs= 4326, remove = F)
 ```
 
 Now if you look at the sf objects we've created, it gives information of what kind of spatial object we made (POINTS) and it will provide information on what CRS has been assigned to the coordinate data set. The data itself should look very similar to a tibble object, which should be familiar to you now. The addition of the geometry column should give you a hint that it is now a spatial point object. 
