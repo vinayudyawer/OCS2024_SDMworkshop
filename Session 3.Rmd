@@ -23,6 +23,79 @@ Species distribution models are instrumental in predicting and understanding the
 
 
 
+## Theory and Concept
+
+
+
+--------------------------------------------------------------------------------------------------------------------------------
+
+## Basic steps of building SDMs
+
+
+
+--------------------------------------------------------------------------------------------------------------------------------
+### Data preperation
+
+
+#### Presence data
+
+
+#### Environmental data
+
+
+#### Absence or Pseudo-absence data
+
+
+
+--------------------------------------------------------------------------------------------------------------------------------
+### Model fitting
+
+
+#### Maximum Entropy
+
+
+#### Machine learning models (GBM, BRT, Random forest) 
+
+
+#### Generalised Linear Models
+
+
+#### Mixed effects models
+
+
+#### Ensemble models
+
+
+--------------------------------------------------------------------------------------------------------------------------------
+### Model evaluation
+
+
+
+
+
+--------------------------------------------------------------------------------------------------------------------------------
+### Model predictions
+
+
+#### Model thresholding
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
