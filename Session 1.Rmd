@@ -413,10 +413,17 @@ library(ggspatial)
 
 M150_sf <- whaleshark_sf %>% 
   filter(ANIMALID == 'M-150')
+
+M150_path <- 
+  M150_sf %>% 
+  arrange(DATETIME) %>% 
+  summarise(do_union = FALSE) %>%
+  st_cast("LINESTRING")
   
 ggplot() +
-  annotation_map_tile(type = "osm", zoom = 8) +
-  layer_spatial(data = M150_sf) 
+  annotation_map_tile(type = "osm") +
+  layer_spatial(data = M150_sf) +
+  layer_spatial(data = M150_path)
 
 ```
 
@@ -505,21 +512,34 @@ We can use the mapview package to plot interactive maps!
 
 ```{r}
 library(mapview)
+mapview::mapviewOptions(fgb = FALSE)
 
 mapview(whaleshark_sf)
+
+whaleshark_paths <-
+  whaleshark_sf %>% 
+  arrange(DATETIME) %>% 
+  group_by(ANIMALID) %>% 
+  summarise(do_union = FALSE) %>%
+  st_cast("LINESTRING")
+  
+
 ```
 
 ```{r}
-map1<- 
+map1<-
   mapview(whaleshark_sf,
-        alpha.reg = 0.5,
-        alpha = 1,
-        color = grey,
-        fill = grey, 
-        map.types = "Esri.WorldImagery",
-        legend = F,
-        home.button = F,
-        cex = 5)
+          zcol = "ANIMALID",
+          burst = T,
+          map.types = "Esri.WorldImagery",
+          legend = F,
+          homebutton = F,
+          cex = 5) +
+  mapview(whaleshark_paths,
+          zcol = "ANIMALID",
+          burst = T,
+          legend = F,
+          homebutton = F)
 
 map1@object
 map1@map
@@ -536,6 +556,7 @@ map2 <-
       options = layersControlOptions(collapsed = F)) %>%
   hideGroup(unique(whaleshark_sf$ANIMALID))
 
+map2
 
 # Highlight not working for the individuals... 
 ```

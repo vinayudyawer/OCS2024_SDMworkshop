@@ -117,7 +117,7 @@ This is a bit better! When predicting on a 48 hour time step, the models converg
 
 ```{r}
 fit3 <- tagdat %>%
-  dplyr::filter(id %in% c("M-130", "M-150", "M-156")) %>%
+  dplyr::filter(id %in% c("M-130", "M-150")) %>%
   fit_ssm(vmax = 1.5, ## maximum speed of whale sharks (in m/s)
           model = "mp", ## Move persistence model
           time.step = 48) ## predict positions every 48 hours
@@ -211,6 +211,7 @@ pred_path <-
 # Now lets use our lovely mapview and leaflet knowledge from session one to plot a nice, interactive plot of move persistence data! 
 library(leaflet)
 library(mapview)
+mapview::mapviewOptions(fgb = FALSE)
 
 color_palette <- colorRampPalette(hcl.colors(10, palette = "Reds 3"))
 
@@ -218,7 +219,7 @@ m_130 <-
   mapview(pred_path %>% filter(id %in% "M-130"), alpha = 1, color = "white", homebutton = F, 
           legend = F, map.type = c("Esri.WorldImagery"), layer.name = "M-130") +
   mapview(pred_data %>% filter(id %in% "M-130"), alpha.regions = 1, alpha = 0, zcol = "g",
-          homebutton = F, legend = F, cex = 3, layer.name = "M-130", col.regions = color_palette(100)) +
+          homebutton = F, legend = F, cex = 3, layer.name = "M-130", col.regions = color_palette(93)) +
   mapview(pred_data %>% filter(id %in% "M-130") %>% slice(1), alpha.regions = 1, alpha = 0,
           col.regions = "darkgreen", homebutton = F, legend = F, layer.name = "M-130") +
   mapview(pred_data %>% filter(id %in% "M-130") %>% slice(n()), alpha.regions = 1, alpha = 0,
@@ -228,7 +229,7 @@ m_150 <-
   mapview(pred_path %>% filter(id %in% "M-150"), alpha = 1, color = "white", homebutton = F, 
           legend = F, map.type = c("Esri.WorldImagery"), layer.name = "M-150") +
   mapview(pred_data %>% filter(id %in% "M-150"), alpha.regions = 1, alpha = 0, zcol = "g",
-          homebutton = F, legend = F, cex = 3, layer.name = "M-150", col.regions = color_palette(100)) +
+          homebutton = F, legend = F, cex = 3, layer.name = "M-150", col.regions = color_palette(54)) +
   mapview(pred_data %>% filter(id %in% "M-150") %>% slice(1), alpha.regions = 1, alpha = 0,
           col.regions = "darkgreen", homebutton = F, legend = F, layer.name = "M-150") +
   mapview(pred_data %>% filter(id %in% "M-150") %>% slice(n()), alpha.regions = 1, alpha = 0,
