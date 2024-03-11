@@ -18,14 +18,14 @@ editor_options:
 
 ## Session 1 - Basics of data cleaning and mapping using telemetry data
 
-This session will address the fundamentals of data pre-processing and visualisation, utilising the tidyverse, sf, and ggspatial R packages. Participants will learn efficient data cleaning methods, organisation of telemetry data, and the creation of geospatial visualisations to gain insights into animal distributions and movements.
+This session will address the fundamentals of data pre-processing and visualisation, utilising lubridate, tidyverse, sf, ggspatial, and gganimate R packages. Participants will learn efficient data cleaning methods, organisation of telemetry data, and the creation of geospatial visualisations to gain insights into animal distributions and movements.
 
 
 # Reading the data
 
-Before we can analyze these data, we first need to read the dataset into R. The 'comma deperated value' (.csv) format is a popular and effective way to export large datasets. This format is a prefered way to store your data, and easily import into R. 
+Before we can analyze these data, we first need to read the dataset into R. The 'comma deperated value' (.csv) format is a popular and effective way to export large data sets. This format is a preferred way to store your data, and easily import into R. 
 
-In this session, we will explore how import a .csv file using base R and using tidyverse. 
+In this session, we will explore how to import a .csv file using base R and using tidyverse. 
 
 # Using base R
 
@@ -37,8 +37,6 @@ A .csv file can be imported into R using the read.csv base function, and by tell
 
 # Load the whale shark data using the 'read.csv' function directly from github 
 whaleshark <- read.csv('https://raw.githubusercontent.com/vinayudyawer/OCS2024_SDMworkshop/main/Data/Whalesharks_Maldives.csv', header = TRUE)
-# Point out that base r doesn't format, just reads as characters or numbers
-# do quick exploration in base r
 ```
 
 Now, let's do a quick exploration of the data using base R to get familiar with it. 
@@ -69,9 +67,14 @@ whaleshark$DATE <- parse_date_time(whaleshark$DATE, "Ymd HMS")
 # We can check if it worked by using the class function
 class(whaleshark$DATE)
 
+```
 
-# The lubridate package is AMAZING. Aside from changing date/time formats easily, you can also convert between various time zones. In this case, it's not super important for our animal tracking data to be in a specific time zone, but you may run into a scenario where your data was collected in UTC, but you need it in a local time. This may be especially relevant later on when creating species distribution models' when correlating the time an animal was present with environmental factors. 
 
+The lubridate package is AMAZING. Aside from changing date/time formats easily, you can also convert between various time zones. In this case, it's not super important for our animal tracking data to be in a specific time zone, but you may run into a scenario where your data was collected in UTC, but you need it in a local time. 
+
+This may be especially relevant later on when creating species distribution models' when correlating the time an animal was present with environmental factors.
+
+```{r}
 # Lets practice by creating a new field with the time zone as AEST. 
 whaleshark$LOCAL_DATE_TIME <- with_tz(whaleshark$DATE, tzone = "Australia/Brisbane")
 
@@ -100,9 +103,12 @@ Now lets see an example of it's usefulness. Above, we loaded the data using base
 
 # You can also use read_csv to input data directly from a website URL
 whaleshark <- read_csv('https://raw.githubusercontent.com/vinayudyawer/OCS2024_SDMworkshop/main/Data/Whalesharks_Maldives.csv')
+
+# Note, right now we are reading over our previous 'whaleshark' data frame. So any manipulations you've done to the data frame will be reset. 
 ```
 
-As you can see, the date field is already a dttm object. How clever of tidyverse to automatically know this! 
+As you can see, the date field is already a 'dttm' object. How clever of tidyverse to automatically know this! 
+
 
 # Exploring the data 
 
@@ -115,10 +121,9 @@ If you're a more advanced coder, you can read about the differences in pipes [he
 For the purpose of this workshop, we will be using the '%>%' pipe, because this is what most people are familiar with. 
 %>% is an infix operator. This means it takes two operands, left and right and ‘pipes’ the output of the last expression/function (left) forward to the first input of the next function (right).
 
+For example, above we used the code 'class(whaleshark)' to see what class our data was in. In tidyverse, we can do this same operation using a pipe...
 ```{r}
-# For example, above we used the code ' class(whaleshark)' to see what class our data was in. In tidyverse, we can do this same operation using a pipe...
-
-whaleshark %>% class()
+whaleshark %>% class() # In english: take the 'whaleshark' data frame and run the class function on it. 
 
 ```
 
@@ -143,17 +148,17 @@ This functionality is particularly useful if the data is very large!
 
 Note the (), as opposed to the [] we used for indexing. The () signify a function.
 
-We can also use pipes on a single column in our data frame:
+We can also use pipes on a *single column* in our data frame:
 ```{r}
-# pipes can be used for single column within data frames
 whaleshark$DATE %>% class()
 ```
 
 But the main benefit to pipes is that they can be used to conduct multiple functions in a certain order instead of having to perform operations individually! This makes piping super handy for data manipulation and filtering. 
 
 # Data manipulation and filtering 
+
+For example, lets figure out how many detections we have for whale shark 'M-150'...
 ```{r}
-# For example, lets figure out how many detections we have for whale shark 'M-150'...
 
 whaleshark %>% 
   subset(ANIMALID == "M-150") %>% # subset dataset to include only the whale shark 'M-150'
@@ -197,18 +202,17 @@ Check out this useful online [cheatsheet](https://rstudio.github.io/cheatsheets/
 
 Select
 
-We can use the select function in dplyr to choose the columns we want to include for our analyses and plotting
+We can use the select function in dplyr to choose the columns we want to include for our analyses and plotting. Let's say we weren't interested in the 'ARGOSCLASS' column. We can remove the column from out dataset using dplyr's select() function.
 ```{r}
-# Select the rows we are interested in
 
 whaleshark %>% 
-  dplyr::select(ANIMALID, DATE, LONGITUDE, LATITUDE, ARGOSCLASS)# %>% # columns we want to include
-#  select(-ANIMALID) # the minus symbol denotes columns we want to drop
+  dplyr::select(ANIMALID, DATE, LONGITUDE, LATITUDE)# %>% # columns we want to include
+#  OR ALTERNATIVELY 
+# dplyr::select(-ARGOSCLASS) # the minus symbol denotes columns we want to drop
 
-head(whaleshark) # look at our subsetted data
-
-# In this case, our data came pretty tidy and we probably want to hold on to all the columns for now. I've just left the code to remove columns in case anyone wants it. 
 ```
+In this case, our data came pretty tidy and we probably want to hold on to all the columns for now. 
+
 
 Filter and arrange
 
@@ -229,23 +233,28 @@ whaleshark %>%
   group_by(ANIMALID) %>%
   summarise(NumDetections = n()) # summarise number of detections per tagged shark
 
-# Now we can see that there is huge variability in number of detections for individuals. Whale shark M-130 has by far the most detections (202), while whale shark M-129 only has four detections. This might have implications for our modelling in session 2...
 ```
+Now we can see that there is huge variability in number of detections for individuals. Whale shark M-130 has by far the most detections (202), while whale shark M-129 only has four detections. This might have implications for our modelling in session 2...
+
 
 mutate 
 
 Adding and removing data to the data frame through a pipe
+
+Up until now, we haven't made any permanent changes to the 'whaleshark' dataframe. We've only demonstrated how certain functions can be used. If we want to make a permanent change, we have to assign the function to a name. We do this using '<-'. 
+
+For example, it's pretty confusing that our column named 'DATE' is actually 'date-time'. Let's change the name of the DATE Column to DATETIME to avoid confusion. 
 ```{r}
-# It's pretty confusing that our column named DATE is actually date time. We may want to change the name of the DATE Column to DATETIME 
 
 whaleshark <-
   whaleshark %>% 
-  rename(DATETIME = DATE) %>%
-  mutate(DATE = as.Date(DATETIME)) %>% # adding a column to the whale shark data with just date of each detection
-  mutate(TIME = format(DATETIME, format = "%H:%M:%S"))
+  rename(DATETIME = DATE) %>% # change the name of our DATETIME column
+  mutate(DATE = as.Date(DATETIME)) %>% # add a column to the whale shark data with just date of each detection
+  mutate(TIME = format(DATETIME, format = "%H:%M:%S")) # add a column for just time 
 
 ```
 
+By assigning whaleshark <- before the operations, we have now made a permanent change to the 'whaleshark' dataframe. If you're making lots of changes to your data, you may not want to write over previous versions of your data. But for this demonstration, we will. 
 
 
 # Data visualization using ggplot 
@@ -311,6 +320,7 @@ help.search("geom_", package = "ggplot2")
 # Basic plotting and data visualization 
 
 In the script below, we call in the whaleshark dataset, perform some operations on it, and then pipe it into a ggplot() function, in this case we are using geom_boxplot() to create a box plot
+
 ```{r}
 whaleshark %>%
   group_by(ANIMALID, DATE) %>% 
@@ -318,6 +328,7 @@ whaleshark %>%
   ggplot(mapping = aes(x = ANIMALID, y = daily_detections, color = ANIMALID)) + # define the aesthetic map (what to plot)
   xlab("Tag") + ylab("Number of detections per day") +
   geom_boxplot() # define the geometric object (how to plot it).. in this case a boxplot 
+
 ```
 Here, we can visualize the range in number of detections per day per shark. Shark M 130 has the greatest range in detections per day, as well as highest number of detections in one day. Conversely, shark M 130 has the least. 
 
@@ -332,12 +343,6 @@ whaleshark %>%
 
 ```
 Now we can see that Sharks M-130 and M-150 have the largest date range of detections, while shark M-129, we detected the least, and over the shortest date range. 
-
-
-
-
-
-
 
 
 
@@ -375,8 +380,9 @@ library(sf)
 ```
 
 # st_as_sf() 
+
+Next we can convert out whale shark data frame into a 'simple feature' (aka a spatial object) using the st_as_sf() function in the sf package 
 ```{r}
-# Next we can convert out whale shark data frame into a 'simple feature' (aka a spatial object) using the st_as_sf() function in the sf package 
 
 whaleshark_sf <-
   whaleshark %>% 
@@ -384,6 +390,7 @@ whaleshark_sf <-
 ```
 
 Now if you look at the sf objects we've created, it gives information of what kind of spatial object we made (POINTS) and it will provide information on what CRS has been assigned to the coordinate data set. The data itself should look very similar to a tibble object, which should be familiar to you now. The addition of the geometry column should give you a hint that it is now a spatial point object. 
+
 ```{r}
 head(whaleshark_sf)
 ```
@@ -393,10 +400,27 @@ head(whaleshark_sf)
 We can make a simple plot to visualize the points spatially using the ggplot2 package, specifically the geom_sf() function 
 ```{r}
 ggplot(whaleshark_sf, aes(color = ANIMALID)) + 
-  geom_sf() #Can we connect these points with lines? 
+  geom_sf() 
 ```
-Amazing! It worked! The data is looking MESSY though. We can see that shark M-150 has the most detections, and also has the largest spatial range of detections. 
+Amazing! It worked! We can see that shark M-150 has the most detections, and also has the largest spatial range of detections. The data is looking MESSY though. It would be helpful to connect the POINTS with LINES, because then we can visualise each animal's path! 
 
+To do this, we need to create a LINES sf object using the st_cast() function 
+```{r}
+whaleshark_path <- 
+  whaleshark_sf %>%
+  group_by(ANIMALID) %>% #Group by animal ID so that each animal has it's own unique path
+  arrange(DATETIME) %>% # arrange by the date to ensure data are in the correct sequence 
+  summarise(do_union = FALSE) %>% 
+  st_cast("LINESTRING") # converts our points sf to a path sf
+
+```
+
+```{r}
+ggplot() + 
+  geom_sf(data = whaleshark_sf, aes(color = ANIMALID)) +
+  geom_sf(data = whaleshark_path, aes(color = ANIMALID))
+```
+That's much better! 
 
 # Introduction to the ggspatial package for spatial mapping 
 
@@ -433,9 +457,10 @@ Carto
 ```{r}
 ggplot() +
   annotation_map_tile(type = "cartolight", zoom = 8) +
-  layer_spatial(data = M150_sf)
+  layer_spatial(data = M150_sf) +
+  layer_spatial(data = M150_path)
 ```
-
+Cartolight is a grey marine basemap with societal land features such as city names and roads. Because our shark is in out in the Indian ocean, away from land, this basemap isn't as appropriate for this particular situation. We just want to show you some of the options available! 
 
 Non-standard basemaps
 
@@ -443,11 +468,12 @@ Non-standard basemaps
 ```{r}
 
 esri_sat <- paste0('https://services.arcgisonline.com/arcgis/rest/services/',
-                   'World_Imagery/MapServer/tile/${z}/${y}/${x}.jpeg') # Same link as singapore workshop 
+                   'World_Imagery/MapServer/tile/${z}/${y}/${x}.jpeg')
 
 ggplot() +
   annotation_map_tile(type = esri_sat, zoom = 8) +
-  layer_spatial(data = M150_sf, color = 'white')
+  layer_spatial(data = M150_sf, color = 'white')  +
+  layer_spatial(data = M150_path, color = 'white')
 
 ```
 
@@ -459,11 +485,10 @@ esri_topo <- paste0('https://services.arcgisonline.com/arcgis/rest/services/',
 
 ggplot() +
   annotation_map_tile(type = esri_topo, zoom = 8) +
-  layer_spatial(data = M150_sf)
+  layer_spatial(data = M150_sf)  +
+  layer_spatial(data = M150_path)
 
 ```
-
-Cartolight is a grey marine basemap with societal land features such as city names and roads. Because our shark is in out in the Indian ocean, away from land, this basemap isn't as appropriate for this particular situation. The ESRI Satelittle imagery uses a very dark basemap for this same reason and also wouldn't be a great choice in this case. We just want to show you some of the options available! 
 
 Just like in gglot2 you can now add more layers to the map, and control the aesthetics of the layers in the same way. Lets add other features in the map like a scale bar using the annotation_scale() function. 
 
@@ -471,18 +496,11 @@ Just like in gglot2 you can now add more layers to the map, and control the aest
 ggplot() +
   annotation_map_tile(type = 'osm', zoom = 8) +
   layer_spatial(data = M150_sf) +
+  layer_spatial(data = M150_path) +
   annotation_scale() +
   theme(legend.position = "bottom")
 
 ```
-
-
-
-
-
-
-
-
 
 
 # gganimate package
@@ -497,24 +515,38 @@ The gganimate package works to animate your ggplot2 creations, which is an espec
 
 More information on the gganimate package can be found [here](https://gganimate.com/). 
 
-Lets try to animate our .....
-
+Load up the gganimate() package
 ```{r}
-
+library(gganimate)
 
 ```
 
+Lets try to animate our path for whaleshark M-150 using the transition_time() function in gganimate. 
+
+*So since M150 Path just being one object, does that mean you can't animate it along with the points?*
+
+```{r}
+ggplot() +
+  annotation_map_tile(type = esri_sat, zoom = 8) +
+  layer_spatial(data = M150_sf, color = 'white')  +
+  layer_spatial(data = M150_path, color = 'white') + 
+  transition_time(DATETIME) 
+
+```
 
 
 # Mapview package 
 
 We can use the mapview package to plot interactive maps! 
 
+load up mapview() 
 ```{r}
 library(mapview)
-mapview::mapviewOptions(fgb = FALSE)
+mapview::mapviewOptions(fgb = FALSE) # Quick explanation of this line ******
+```
 
-mapview(whaleshark_sf)
+Let's test how it works on the whaleshark_sf 
+```{r}
 
 whaleshark_paths <-
   whaleshark_sf %>% 
@@ -522,10 +554,15 @@ whaleshark_paths <-
   group_by(ANIMALID) %>% 
   summarise(do_union = FALSE) %>%
   st_cast("LINESTRING")
-  
 
+mapview(whaleshark_sf)
+mapview(whaleshark_paths)
+  
 ```
 
+Now let's use the mapview package to put the points and lines layers together into one interactive map!
+
+Here we will use the burst parameter to enable subsetting and separately plot different subsets interactively. 
 ```{r}
 map1<-
   mapview(whaleshark_sf,
@@ -540,11 +577,16 @@ map1<-
           burst = T,
           legend = F,
           homebutton = F)
+```
 
+If you have a closer look at our interactive map (map1), you’ll notice it has two components:
+```{r}
 map1@object
 map1@map
 
 ```
+
+The m@object component houses all the raw spatial data that the interactive map plots, and the m@map component has the actual map. We can use other functions from the leaflet package to make other adjustments to our @map component to make is easier to interact with. Here we will use the addLayersControl() function to modify how we can interact with the subsets of detection data:
 
 ```{r}
 library(leaflet)
@@ -558,20 +600,11 @@ map2 <-
 
 map2
 
-# Highlight not working for the individuals... 
 ```
 
 We can then use the mapshot() function in the mapview package to save our interactive map as a html file or a png output. You can then share the html version of the output to collaborators, or upload them on websites for others to explore your data interactively.
 
 ```{r}
 mapview::mapshot(map2, url = "Whaleshark_interactive_map.html", remove_controls = NULL, selfcontained = TRUE)
-
 ```
-
-
-
-
-
-
-
 

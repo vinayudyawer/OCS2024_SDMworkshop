@@ -21,7 +21,6 @@ editor_options:
 The second session will introduce participants to the aniMotum package, a valuable tool for analysing animal movement data. Attendees will acquire the skills to define distinct behavioural patterns exhibited by tracked animals.
 
 
-
 # Step 1: Input and format data 
 
 ```{r}
@@ -101,7 +100,7 @@ fit <-
 head(fit)
 ```
 
-So if we take a look at the fit object, we can see that actually the model only converged for one of our sharks - M 150. We don't have enough data for the other sharks for the models to converge. So lets now run another model, but this time lets use a time step of 48 hours. 
+So if we take a look at the fit object, we can see that actually the model only converged for one of our sharks - M 150. That makes sense, as we know from session one we have the most data for M 150. We don't have enough data for the other sharks for the models to converge. So lets now run another model, but this time lets use a time step of 48 hours. 
 
 ```{r}
 fit2 <-
@@ -208,7 +207,29 @@ pred_path <-
   summarise(do_union = FALSE) %>%
   st_cast("LINESTRING")
 
+```
+
+# Animate the tracks using gganimate! 
+
+We can use the knowledge we acquired in session one to animate the modeled tracks
+```{r}
+library(ggspatial)
+library(gganimate)
+
+esri_sat <- paste0('https://services.arcgisonline.com/arcgis/rest/services/',
+                   'World_Imagery/MapServer/tile/${z}/${y}/${x}.jpeg')
+ggplot() +
+  annotation_map_tile(type = esri_sat, zoom = 8) +
+  layer_spatial(data = pred_data, aes(color = id)) +
+  layer_spatial(data = pred_path, aes(color = id)) + 
+  labs(title = 'Date: {date}', x = 'Longitude', y = 'Latitude') +
+  transition_time(date)
+
+```
+
+
 # Now lets use our lovely mapview and leaflet knowledge from session one to plot a nice, interactive plot of move persistence data! 
+```{r}
 library(leaflet)
 library(mapview)
 mapview::mapviewOptions(fgb = FALSE)
@@ -247,15 +268,15 @@ mm <-
 mm
 ```
 
-# Step 5: Simulate & or re-route tracks
+
+
+# Simulate & or re-route tracks
 The aniMotum package also allows users to use your fitted model to simulate similar tracks, which is useful if you want to compare your animal's track with other 'null' models. This allows for further hypothesis testing and analyses like resource selection functions. Here, we will use the 
 
 ```{r}
 
 
 ```
-
-# Step 6: Animate the tracks using gganimate! 
 
 
 # add pseudo absenses (which we will need for sdm)
