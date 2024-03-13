@@ -367,7 +367,7 @@ Most countries have multiple coordinate reference systems, and where they meet t
 
 The EPSG list among other sources is used in the workhorse PROJ.4 library, and handles transformation of spatial positions between different CRS. This library is interfaced with R in the rgdal package, and the CRS is defined partly in the proj package and partly in rgeos.
 
-In the next step, we will convert our blacktip dataset (blacktip) into a spatial object and specify the CRS. We therefore need to refer to the correct CRS information associated with the spatial data.
+In the next step, we will convert our whaleshark dataset (whaleshark) into a spatial object and specify the CRS. We therefore need to refer to the correct CRS information associated with the spatial data.
 
 For simplicity, each projection can be referred to by a unique ID from the **European Petroleum Survey Group (EPSG)** geodetic parameter dataset. You can find the relevant EPSG code for your coordinate system from this [website](https://epsg.io/). There, simply enter in a key word in the search box and select from the list the correct coordinate system. There is a map image in the top right of the site to help you.
 
