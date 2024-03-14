@@ -18,6 +18,45 @@ editor_options:
 
 ------------------------------------------------------------------------------------------------------------------------------------------------------
 
+```{css, echo = FALSE}
+/* styles.css */
+
+.text-toggle button {
+  background-color: #009bff;
+  color: #fff;
+  border: none;
+  padding: 5px 10px;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.text-toggle button:hover {
+  background-color: #0076b3;
+}
+
+#hidden-text {
+  display: none;
+}
+```
+
+<script>
+function toggleText() {
+  var x = document.getElementById("hidden-text");
+  if (x.style.display === "none") {
+    x.style.display = "block";
+  } else {
+    x.style.display = "none";
+  }
+}
+</script>
+
+```{r, echo=FALSE}
+htmltools::img(src =knitr::image_uri('images/session_0/workshop_banner.png'),
+               alt = 'logo', 
+               style = 'position:center; top:0; left:0; padding:0px;')
+```
+
+------------------------------------------------------------------------------------------------------------------------------------------------------
 # Using animal tracking data to explore behaviour and distributions of species {.tabset .tabset-fade}
 
 <br>
@@ -33,7 +72,7 @@ editor_options:
 
 **Mina** is...
 
-**Vinay** is a Research Scientist at the [Australian Institute of Marine Science](https://www.aims.gov.au/). He is an ecologist that is particularly
+**Vinay** is a Spatial Ecologist at the [Charles Darwin Foundation](https://www.darwinfoundation.org/en/). He is an ecologist that is particularly
 interested in using spatio-temporal datasets to understand animal movements and distributions patterns. He has considerable experience using **R** to
 analyse and visualise large and complex spatial datasets. He has developed **R** code and packages to analyse 2 and 3 dimensional movement patterns of
 animals using acoustic telemetry data from single study sites to continental scale arrays. Vinay's **R** codes can be found on his [github
@@ -43,7 +82,7 @@ page](https://github.com/vinayudyawer).
 
 <div>
 
-![](images/pic1.jpg)
+![](images/session_0/Vinay.jpg)
 
 ![](images/pic2.jpg)
 

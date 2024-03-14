@@ -303,7 +303,7 @@ gam_a <-
   # layer_spatial(occ_vect, color = "white", alpha = 0.5) +
   layer_spatial(mod_ext, fill = NA, col = "black", lwd = 0.5) +
   # annotation_scale(width_hint = 0.2, location = "br") +
-  scale_fill_viridis_c(na.value = NA, name = "Model fit") +
+  scale_fill_viridis_c(na.value = NA, name = "Probability\nof presence") +
   scale_x_continuous(expand = expansion(mult = c(0.04, 0.04))) +
   scale_y_continuous(expand = expansion(mult = c(0.04, 0.04))) +
   theme(legend.position = "inside", legend.position.inside = c(0.8, 0.15), legend.title.position = "top",
@@ -350,20 +350,19 @@ rf_eval <- evaluate(p = test_presence, a = test_absence, model = rf_mod, type = 
 
 plot(rf_eval, "ROC", type = "l")
 
-gam_threshold <- threshold(gam_eval, stat = 'spec_sens')
-
 rf_resp <- terra::predict(env_stack, rf_mod, type = "prob")
 rf_tmap <- terra::predict(env_stack, rf_mod, type = "response")
 # values(rf_tmap)[values(rf_tmap) %in% 2] <- NA
+rf_pmap <- rf_resp[[2]]
 
 rf_a <-
   ggplot() + 
   annotation_map_tile('cartolight', zoom = 4) +
-  layer_spatial(rf_resp[[2]]) +
+  layer_spatial(rf_pmap) +
   # layer_spatial(occ_vect, color = "white", alpha = 0.5) +
   layer_spatial(mod_ext, fill = NA, col = "black", lwd = 0.5) +
   # annotation_scale(width_hint = 0.2, location = "br") +
-  scale_fill_viridis_c(na.value = NA, name = "Model fit") +
+  scale_fill_viridis_c(na.value = NA, name = "Probability\nof presence") +
   scale_x_continuous(expand = expansion(mult = c(0.04, 0.04))) +
   scale_y_continuous(expand = expansion(mult = c(0.04, 0.04))) +
   theme(legend.position = "inside", legend.position.inside = c(0.8, 0.15), legend.title.position = "top",
@@ -487,7 +486,7 @@ max_a <-
   # layer_spatial(occ_vect, color = "white", alpha = 0.5) +
   layer_spatial(mod_ext, fill = NA, col = "black", lwd = 0.5) +
   # annotation_scale(width_hint = 0.2, location = "br") +
-  scale_fill_viridis_c(na.value = NA, name = "Model fit") +
+  scale_fill_viridis_c(na.value = NA, name = "Probability\nof presence") +
   scale_x_continuous(expand = expansion(mult = c(0.04, 0.04))) +
   scale_y_continuous(expand = expansion(mult = c(0.04, 0.04))) +
   theme(legend.position = "inside", legend.position.inside = c(0.8, 0.15), legend.title.position = "top",
@@ -511,13 +510,87 @@ max_pl <- max_a + max_b
 ggsave("images/session_3/18_max_map.png", max_pl, width = 12, height = 5)
 
 
+## Ensemble models
+
+model_maps <- 
+  (glm_a + labs(title = "GLM (AUC = 0.675)")) +
+  (gam_a + labs(title = "GAM (AUC = 0.81)")) +
+  (rf_a + labs(title = "Random Forest (AUC = 0.5)")) +
+  (max_a + labs(title = "Maxent (AUC = 0.801)")) +
+  plot_layout(nrow = 1)
+
+ggsave("images/session_3/19_ensemble_plot.png", model_maps, width = 20, height = 5)
 
 
+models <- c(glm_resp, gam_resp, rf_pmap, max_pred)
+names(models) <- c("GLM", "GAM", "RF", "Max")
+
+average_model <- mean(models)
+average_tmap <- average_model> 0.5
+values(average_tmap)[values(average_tmap) < 1] <- NA
+
+w_average_model <- weighted.mean(models, w = c(0.675, 0.81, 0.5, 0.801))
+w_average_tmap <- w_average_model> 0.5
+values(w_average_tmap)[values(w_average_tmap) < 1] <- NA
+
+plot(c(average_model, w_average_model, average_tmap, w_average_tmap))
+
+ens_a <-
+  ggplot() + 
+  annotation_map_tile('cartolight', zoom = 4) +
+  layer_spatial(average_model) +
+  # layer_spatial(occ_vect, color = "white", alpha = 0.5) +
+  layer_spatial(mod_ext, fill = NA, col = "black", lwd = 0.5) +
+  # annotation_scale(width_hint = 0.2, location = "br") +
+  scale_fill_viridis_c(na.value = NA, name = "Probability\nof presence") +
+  scale_x_continuous(expand = expansion(mult = c(0.04, 0.04))) +
+  scale_y_continuous(expand = expansion(mult = c(0.04, 0.04))) +
+  labs(title = "Mean model") +
+  theme(legend.position = "inside", legend.position.inside = c(0.8, 0.15), legend.title.position = "top",
+        legend.text = element_text(color = "white"), legend.title = element_text(color = "white"),
+        legend.background = element_rect(fill = NA, color = NA),
+        legend.direction = "horizontal", axis.text = element_blank(), axis.ticks = element_blank())
+
+ens_am <-
+  ggplot() + 
+  annotation_map_tile('cartolight', zoom = 4) +
+  layer_spatial(average_tmap) +
+  layer_spatial(occ_vect, color = "white", alpha = 0.5) +
+  layer_spatial(mod_ext, fill = NA, col = "black", lwd = 0.5) +
+  # annotation_scale(width_hint = 0.2, location = "br") +
+  scale_fill_gradient(low = "darkgreen", high = "forestgreen", na.value = NA) +
+  scale_x_continuous(expand = expansion(mult = c(0.04, 0.04))) +
+  scale_y_continuous(expand = expansion(mult = c(0.04, 0.04))) +
+  theme(legend.position = "none", axis.text = element_blank(), axis.ticks = element_blank())
 
 
+ens_w <-
+  ggplot() + 
+  annotation_map_tile('cartolight', zoom = 4) +
+  layer_spatial(w_average_model) +
+  # layer_spatial(occ_vect, color = "white", alpha = 0.5) +
+  layer_spatial(mod_ext, fill = NA, col = "black", lwd = 0.5) +
+  # annotation_scale(width_hint = 0.2, location = "br") +
+  scale_fill_viridis_c(na.value = NA, name = "Probability\nof presence") +
+  scale_x_continuous(expand = expansion(mult = c(0.04, 0.04))) +
+  scale_y_continuous(expand = expansion(mult = c(0.04, 0.04))) +
+  labs(title = "Weighted mean model") +
+  theme(legend.position = "inside", legend.position.inside = c(0.8, 0.15), legend.title.position = "top",
+        legend.text = element_text(color = "white"), legend.title = element_text(color = "white"),
+        legend.background = element_rect(fill = NA, color = NA),
+        legend.direction = "horizontal", axis.text = element_blank(), axis.ticks = element_blank())
 
+ens_wm <-
+  ggplot() + 
+  annotation_map_tile('cartolight', zoom = 4) +
+  layer_spatial(w_average_tmap) +
+  layer_spatial(occ_vect, color = "white", alpha = 0.5) +
+  layer_spatial(mod_ext, fill = NA, col = "black", lwd = 0.5) +
+  # annotation_scale(width_hint = 0.2, location = "br") +
+  scale_fill_gradient(low = "darkgreen", high = "forestgreen", na.value = NA) +
+  scale_x_continuous(expand = expansion(mult = c(0.04, 0.04))) +
+  scale_y_continuous(expand = expansion(mult = c(0.04, 0.04))) +
+  theme(legend.position = "none", axis.text = element_blank(), axis.ticks = element_blank())
 
-
-
-
-
+ens_plot <- ens_a + ens_w + ens_am + ens_wm + plot_layout(nrow = 2, ncol = 2)
+ggsave("images/session_3/20_ens_map.png", ens_plot, width = 12, height = 10)

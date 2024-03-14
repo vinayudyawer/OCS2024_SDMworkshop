@@ -18,81 +18,76 @@ editor_options:
 
 ## Session 3 - Basics of Species Distribution Models (SDMs)
 
-Species distribution models are instrumental in predicting and understanding the geographic ranges of species. In this session, we will delve into the use of dismo, SDMtune and sdmpredictors R packages, covering the basics of species distribution modelling. Participants will learn how to construct predictive models and assess habitat suitability for species.
-
-
-
+Species distribution models are instrumental in predicting and understanding the geographic ranges of species. In this session, we will delve into the
+use of dismo, SDMtune and sdmpredictors R packages, covering the basics of species distribution modelling. Participants will learn how to construct
+predictive models and assess habitat suitability for species.
 
 ## Theory and Concept
 
+Species Distribution Models (SDMs) are fundamental tools in ecology and conservation biology, aiming to understand and predict the spatial
+distribution of species based on environmental variables. At its core, SDMs are grounded in the ecological niche theory, which suggests that species
+occupy specific ecological niches characterised by environmental conditions such as temperature, water quality, and habitat features. By quantifying
+the relationship between species occurrence records and environmental variables through statistical modeling techniques, SDMs provide insights into
+the ecological requirements and habitat preferences of species.
 
+<br><br>
 
---------------------------------------------------------------------------------------------------------------------------------
+![](images/session_3/0_SDM%20schematic_Marcelino%20and%20Verbruggen%202015.png)
+
+<br><br>
+
+These models typically utilise various algorithms, including MaxEnt, Random Forest, and Generalized Linear Models, to predict species distributions
+across geographic areas. SDMs have diverse applications, from assessing the potential impacts of climate change on species distributions to informing
+conservation planning and management strategies. However, they also come with limitations and uncertainties, including data quality issues,
+assumptions about species-environment relationships, and challenges in extrapolating predictions to novel environmental conditions. Continuous
+refinement and integration of multiple data sources and modeling approaches are essential for improving the accuracy and reliability of SDMs, thereby
+enhancing their utility in addressing pressing ecological and conservation challenges. In this session, we will run though a quick example of how SDMs
+are created in R, and the complexities of thier development and interpretation.
+
+------------------------------------------------------------------------------------------------------------------------------------------------------
 
 ## Basic steps of building SDMs
 
 
+------------------------------------------------------------------------------------------------------------------------------------------------------
 
---------------------------------------------------------------------------------------------------------------------------------
-### Data preperation
-
-
-#### Presence data
+### Data preperation                                       
 
 
-#### Environmental data
+------------------------------------------------------------------------------------------------------------------------------------------------------
 
-
-#### Absence or Pseudo-absence data
-
-
-
---------------------------------------------------------------------------------------------------------------------------------
-### Model fitting
-
-
-#### Maximum Entropy
-
-
-#### Machine learning models (GBM, BRT, Random forest) 
-
-
-#### Generalised Linear Models
-
-
-#### Mixed effects models
-
-
-#### Ensemble models
-
-
---------------------------------------------------------------------------------------------------------------------------------
-### Model evaluation
+### Model fitting {.tabset .tabset-fade .tabset-pills}
 
 
 
 
-
---------------------------------------------------------------------------------------------------------------------------------
-### Model predictions
+#### Linear regression models (LM, GLM)                    
 
 
-#### Model thresholding
+------------------------------------------------------------------------------------------------------------------------------------------------------
+
+#### Non-linear regression models (NLR, GAM)               
 
 
+------------------------------------------------------------------------------------------------------------------------------------------------------
+#### Classification based models (BRT, GBM, Random Forest) 
 
 
+------------------------------------------------------------------------------------------------------------------------------------------------------
+#### Machine learning models (GBM, BRT, Random forest)     
 
 
+------------------------------------------------------------------------------------------------------------------------------------------------------
+#### Maximum Entropy Models (MaxEnt)                       
 
 
+------------------------------------------------------------------------------------------------------------------------------------------------------
+#### Ensemble models                                       
 
 
+------------------------------------------------------------------------------------------------------------------------------------------------------
 
-
-
-
-
+<br><br>
 
 
 
