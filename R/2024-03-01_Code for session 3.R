@@ -7,6 +7,14 @@ library(sf)
 library(terra)
 library(rnaturalearth)
 library(dismo)
+library(ggspatial)
+library(patchwork)
+
+esri_sat <- paste0('https://services.arcgisonline.com/arcgis/rest/services/',
+                   'World_Imagery/MapServer/tile/${z}/${y}/${x}.jpeg')
+
+esri_ngeo <- paste0('https://services.arcgisonline.com/arcgis/rest/services/',
+                   'NatGeo_World_Map/MapServer/tile/${z}/${y}/${x}.jpeg')
 
 ## --------------------------------------------------------------------------------------------------- ##
 ## Land data
@@ -50,6 +58,18 @@ occ_vect <- vect(occ_sf)
 
 mapview(occ_vect)
 
+occ_plot <-
+  ggplot() + 
+  annotation_map_tile('cartolight', zoom = 4) +
+  layer_spatial(mod_ext, fill = NA, col = "white", lwd = 0) +
+  layer_spatial(occ_vect, color = "black") +
+  annotation_scale(width_hint = 0.2, location = "br") +
+  scale_x_continuous(expand = expansion(mult = c(0.04, 0.04))) +
+  scale_y_continuous(expand = expansion(mult = c(0.04, 0.04))) +
+  theme_void()
+
+ggsave("images/session_3/1_occ_plot.png", occ_plot, width = 6, height = 5)
+
 ## --------------------------------------------------------------------------------------------------- ##
 ## Pseudo-absence data
 occ_buff <- 
@@ -85,11 +105,25 @@ mapview(l_diff2) + l_diff + pseudo
 #   write_csv(file = "data/Oceanic whitetip peudo_absence.csv")
 #
 # st_write(mod_ext, "~/Desktop/mod_ext.GeoJSON")
+mod_ext <- st_read("~/Desktop/mod_ext.GeoJSON")
 
 pseudo_vect <- 
   read_csv("https://raw.githubusercontent.com/vinayudyawer/OCS2024_SDMworkshop/main/data/Oceanic%20whitetip%20peudo_absence.csv") %>% 
   st_as_sf(coords = c("lon", "lat"), crs = 4326, remove = F) %>% 
   vect()
+
+pseudo_plot <-
+  ggplot() + 
+  annotation_map_tile('cartolight', zoom = 4) +
+  layer_spatial(pseudo_vect, color = "red", alpha = 0.3) +
+  layer_spatial(occ_vect, color = "black") +
+  layer_spatial(mod_ext, fill = NA, col = "black", lwd = 0.5) +
+  annotation_scale(width_hint = 0.2, location = "br") +
+  scale_x_continuous(expand = expansion(mult = c(0.04, 0.04))) +
+  scale_y_continuous(expand = expansion(mult = c(0.04, 0.04))) +
+  theme_void()
+
+ggsave("images/session_3/2_pseudo_plot.png", pseudo_plot, width = 6, height = 5)
 
 ## --------------------------------------------------------------------------------------------------- ##
 ## Configure environmental data
@@ -113,6 +147,23 @@ pseudo_vect <-
 
 env_stack <- rast("https://raw.githubusercontent.com/vinayudyawer/OCS2024_SDMworkshop/main/data/env_layers.tif")
 
+eplot1 <-
+  ggplot() + 
+  annotation_map_tile('cartolight', zoom = 4) +
+  # layer_spatial(pseudo_vect, color = "red", alpha = 0.3) +
+  # layer_spatial(occ_vect, color = "white") +
+  layer_spatial(data = env_stack[[1]]) +
+  layer_spatial(mod_ext, fill = NA, col = "black", lwd = 0.5) +
+  annotation_scale(width_hint = 0.2, location = "br") +
+  scale_x_continuous(expand = expansion(mult = c(0.04, 0.04))) +
+  scale_y_continuous(expand = expansion(mult = c(0.04, 0.04))) +
+  scale_fill_viridis_c(na.value = NA, option = "H") +
+  labs(title = "Bathymetry") +
+  theme(legend.position = "none", axis.text = element_blank(), axis.ticks = element_blank())
+
+eplot <- eplot1 + eplot2 + eplot3 + eplot4 + plot_layout(nrow = 1)
+ggsave("images/session_3/3_env_plot.png", eplot, width = 20, height = 5)
+
 ext_occ <- extract(env_stack, occ_vect)
 ext_pseudo <- extract(env_stack, pseudo_vect)
 
@@ -120,18 +171,344 @@ full_dataset <-
   as_tibble(ext_occ) %>% mutate(pa = 1, lat = occ_vect$lat, lon = occ_vect$lon, test_train = kfold(ext_occ, 5)) %>% 
   bind_rows(as_tibble(ext_pseudo) %>% mutate(pa = 0, lat = pseudo_vect$lat, lon = pseudo_vect$lon, test_train = kfold(ext_pseudo, 5))) %>% 
   dplyr::select(-ID) %>% 
-  mutate(test_train = case_when(test_train %in% 1 ~ "test", TRUE ~ "train"))
+  mutate(test_train = case_when(test_train %in% 1 ~ "test", TRUE ~ "train")) %>% 
+  transmute(pa, lon, lat, bathymetry, current_velocity, mixed_layer_depth, temperature, test_train) %>% 
+  na.omit()
 
 # write_csv(full_dataset, "data/model_data.csv")
 
 ## --------------------------------------------------------------------------------------------------- ##
 ## Build models
 
-library(mgcv)
-library(stats)
-library(dismo)
+## Explore interactions
 
-model_data <- read_csv("https://raw.githubusercontent.com/vinayudyawer/OCS2024_SDMworkshop/main/data/model_data.csv")
+library(mgcv)
+library(randomForest)
+library(dismo)
+library(visreg)
+
+model_data <- 
+  read_csv("https://raw.githubusercontent.com/vinayudyawer/OCS2024_SDMworkshop/main/data/model_data.csv") %>% 
+  mutate(pa = factor(pa))
+
+training_data <- model_data %>% filter(test_train %in% "train")
+
+test_presence <- 
+  model_data %>% 
+  filter(test_train %in% "test") %>% 
+  filter(pa %in% 1) %>% 
+  st_as_sf(coords = c("lon", "lat"), crs = 4326) %>% 
+  as_Spatial()
+
+test_absence <-
+  model_data %>% 
+  filter(test_train %in% "test") %>% 
+  filter(pa %in% 0) %>% 
+  st_as_sf(coords = c("lon", "lat"), crs = 4326) %>% 
+  as_Spatial()
+
+## GLM model
+glm_mod <- glm(pa ~ bathymetry + current_velocity + mixed_layer_depth + temperature, 
+               data = training_data, family = binomial(link = "logit"))
+
+summary(glm_mod)
+
+a <- visreg(glm_mod, xvar = "bathymetry", scale = "response", xlab = "Bathymetry (m)", ylab = "Probability of presence", gg = T) + theme_bw()
+b <- visreg(glm_mod, xvar = "current_velocity", scale = "response", xlab = "Current Velocity (ms-1)", ylab = NULL, gg = T) + theme_bw()
+c <- visreg(glm_mod, xvar = "mixed_layer_depth", scale = "response", xlab = "Mixed Layer Depth (m)", ylab = NULL, gg = T) + theme_bw()
+d <- visreg(glm_mod, xvar = "temperature", scale = "response", xlab = "Sea Surface Temperature (˚C)", ylab = NULL, gg = T) + theme_bw()
+
+glm_plot <- (a + b + c + d) + plot_layout(nrow = 1)
+ggsave("images/session_3/4_glm_visreg.png", glm_plot, width = 20, height = 5)
+
+visreg2d(glm_mod, xvar = "bathymetry", yvar = "temperature", plot.type = "persp", scale = "response",
+         xlab = "Bathymetry (m)", ylab = "Sea Surface Temparature (˚C)", zlab = "Probability of presence",
+         theta = 145, phi = 15, zlim = c(0,1))
+
+glm_eval <- evaluate(p = test_presence, a = test_absence, model = glm_mod)
+
+plot(glm_eval, "ROC", type = "l")
+
+glm_threshold <- threshold(glm_eval, stat = 'spec_sens')
+
+glm_resp <- terra::predict(env_stack, glm_mod, type = "response")
+glm_prediction <- terra::predict(env_stack, glm_mod, type = "link")
+glm_tmap <- glm_prediction > glm_threshold
+values(glm_tmap)[values(glm_tmap) < 1] <- NA
+
+glm_a <-
+  ggplot() + 
+  annotation_map_tile('cartolight', zoom = 4) +
+  layer_spatial(glm_resp) +
+  # layer_spatial(occ_vect, color = "white", alpha = 0.5) +
+  layer_spatial(mod_ext, fill = NA, col = "black", lwd = 0.5) +
+  # annotation_scale(width_hint = 0.2, location = "br") +
+  scale_fill_viridis_c(na.value = NA, name = "Probability\nof presence") +
+  scale_x_continuous(expand = expansion(mult = c(0.04, 0.04))) +
+  scale_y_continuous(expand = expansion(mult = c(0.04, 0.04))) +
+  theme(legend.position = "inside", legend.position.inside = c(0.8, 0.15), legend.title.position = "top",
+        legend.text = element_text(color = "white"), legend.title = element_text(color = "white"),
+        legend.background = element_rect(fill = NA, color = NA),
+        legend.direction = "horizontal", axis.text = element_blank(), axis.ticks = element_blank())
+
+glm_b <-
+  ggplot() + 
+  annotation_map_tile('cartolight', zoom = 4) +
+  layer_spatial(glm_tmap) +
+  layer_spatial(occ_vect, color = "white", alpha = 0.5) +
+  layer_spatial(mod_ext, fill = NA, col = "black", lwd = 0.5) +
+  # annotation_scale(width_hint = 0.2, location = "br") +
+  scale_fill_gradient(low = "darkgreen", high = "forestgreen", na.value = NA) +
+  scale_x_continuous(expand = expansion(mult = c(0.04, 0.04))) +
+  scale_y_continuous(expand = expansion(mult = c(0.04, 0.04))) +
+  theme(legend.position = "none", axis.text = element_blank(), axis.ticks = element_blank())
+
+glm_pred <- glm_a + glm_b
+ggsave("images/session_3/7_glm_map.png", glm_pred, width = 12, height = 5)
+
+
+## GAM model
+gam_mod <- gam(pa ~ s(bathymetry) + s(current_velocity) + s(mixed_layer_depth) + s(temperature),
+               data = training_data, family = binomial(link = "logit"))
+
+summary(gam_mod)
+
+a <- visreg(gam_mod, xvar = "bathymetry", scale = "response", xlab = "Bathymetry (m)", ylab = "Probability of presence", gg = T) + theme_bw()
+b <- visreg(gam_mod, xvar = "current_velocity", scale = "response", xlab = "Current Velocity (ms-1)", ylab = NULL, gg = T) + theme_bw()
+c <- visreg(gam_mod, xvar = "mixed_layer_depth", scale = "response", xlab = "Mixed Layer Depth (m)", ylab = NULL, gg = T) + theme_bw()
+d <- visreg(gam_mod, xvar = "temperature", scale = "response", xlab = "Sea Surface Temperature (˚C)", ylab = NULL, gg = T) + theme_bw()
+
+gam_plot <- (a + b + c + d) + plot_layout(nrow = 1)
+ggsave("images/session_3/8_gam_visreg.png", gam_plot, width = 20, height = 5)
+
+visreg2d(gam_mod, xvar = "bathymetry", yvar = "temperature", scale = "response", plot.type = "persp",
+         xlab = "Bathymetry (m)", ylab = "Sea Surface Temparature (˚C)", zlab = "Probability of presence",
+         theta = 145, phi = 15, zlim = c(0,1))
+
+gam_eval <- evaluate(p = test_presence, a = test_absence, model = gam_mod)
+
+plot(gam_eval, "ROC", type = "l")
+
+gam_threshold <- threshold(gam_eval, stat = 'spec_sens')
+
+gam_resp <- terra::predict(env_stack, gam_mod, type = "response")
+gam_prediction <- terra::predict(env_stack, gam_mod, type = "link")
+gam_tmap <- gam_prediction > gam_threshold
+values(gam_tmap)[values(gam_tmap) < 1] <- NA
+
+gam_a <-
+  ggplot() + 
+  annotation_map_tile('cartolight', zoom = 4) +
+  layer_spatial(gam_resp) +
+  # layer_spatial(occ_vect, color = "white", alpha = 0.5) +
+  layer_spatial(mod_ext, fill = NA, col = "black", lwd = 0.5) +
+  # annotation_scale(width_hint = 0.2, location = "br") +
+  scale_fill_viridis_c(na.value = NA, name = "Model fit") +
+  scale_x_continuous(expand = expansion(mult = c(0.04, 0.04))) +
+  scale_y_continuous(expand = expansion(mult = c(0.04, 0.04))) +
+  theme(legend.position = "inside", legend.position.inside = c(0.8, 0.15), legend.title.position = "top",
+        legend.text = element_text(color = "white"), legend.title = element_text(color = "white"),
+        legend.background = element_rect(fill = NA, color = NA),
+        legend.direction = "horizontal", axis.text = element_blank(), axis.ticks = element_blank())
+
+gam_b <-
+  ggplot() + 
+  annotation_map_tile('cartolight', zoom = 4) +
+  layer_spatial(gam_tmap) +
+  layer_spatial(occ_vect, color = "white", alpha = 0.5) +
+  layer_spatial(mod_ext, fill = NA, col = "black", lwd = 0.5) +
+  # annotation_scale(width_hint = 0.2, location = "br") +
+  scale_fill_gradient(low = "darkgreen", high = "forestgreen", na.value = NA) +
+  scale_x_continuous(expand = expansion(mult = c(0.04, 0.04))) +
+  scale_y_continuous(expand = expansion(mult = c(0.04, 0.04))) +
+  theme(legend.position = "none", axis.text = element_blank(), axis.ticks = element_blank())
+
+gam_pred <- gam_a + gam_b
+ggsave("images/session_3/11_gam_map.png", gam_pred, width = 12, height = 5)
+
+
+## Random Forest
+rf_mod <- randomForest(pa ~ bathymetry + current_velocity + mixed_layer_depth + temperature,
+                       data = model_data, ntree = 1000, nodesize = 10, importance = T)
+
+rf_mod
+visreg(rf_mod)
+
+a <- visreg(rf_mod, xvar = "bathymetry", xlab = "Bathymetry (m)", ylab = "Probability of presence", gg = T) + theme_bw()
+b <- visreg(rf_mod, xvar = "current_velocity", xlab = "Current Velocity (ms-1)", ylab = NULL, gg = T) + theme_bw()
+c <- visreg(rf_mod, xvar = "mixed_layer_depth", xlab = "Mixed Layer Depth (m)", ylab = NULL, gg = T) + theme_bw()
+d <- visreg(rf_mod, xvar = "temperature", xlab = "Sea Surface Temperature (˚C)", ylab = NULL, gg = T) + theme_bw()
+
+rf_plot <- (a + b + c + d) + plot_layout(nrow = 1)
+ggsave("images/session_3/12_rf_visreg.png", rf_plot, width = 20, height = 5)
+
+visreg2d(rf_mod, xvar = "bathymetry", yvar = "temperature", plot.type = "persp",
+         xlab = "Bathymetry (m)", ylab = "Sea Surface Temparature (˚C)", zlab = "Probability of presence",
+         theta = 145, phi = 15)
+
+rf_eval <- evaluate(p = test_presence, a = test_absence, model = rf_mod, type = "vote")
+
+plot(rf_eval, "ROC", type = "l")
+
+gam_threshold <- threshold(gam_eval, stat = 'spec_sens')
+
+rf_resp <- terra::predict(env_stack, rf_mod, type = "prob")
+rf_tmap <- terra::predict(env_stack, rf_mod, type = "response")
+# values(rf_tmap)[values(rf_tmap) %in% 2] <- NA
+
+rf_a <-
+  ggplot() + 
+  annotation_map_tile('cartolight', zoom = 4) +
+  layer_spatial(rf_resp[[2]]) +
+  # layer_spatial(occ_vect, color = "white", alpha = 0.5) +
+  layer_spatial(mod_ext, fill = NA, col = "black", lwd = 0.5) +
+  # annotation_scale(width_hint = 0.2, location = "br") +
+  scale_fill_viridis_c(na.value = NA, name = "Model fit") +
+  scale_x_continuous(expand = expansion(mult = c(0.04, 0.04))) +
+  scale_y_continuous(expand = expansion(mult = c(0.04, 0.04))) +
+  theme(legend.position = "inside", legend.position.inside = c(0.8, 0.15), legend.title.position = "top",
+        legend.text = element_text(color = "white"), legend.title = element_text(color = "white"),
+        legend.background = element_rect(fill = NA, color = NA),
+        legend.direction = "horizontal", axis.text = element_blank(), axis.ticks = element_blank())
+
+rf_b <-
+  ggplot() + 
+  annotation_map_tile('cartolight', zoom = 4) +
+  layer_spatial(rf_tmap) +
+  layer_spatial(occ_vect, color = "white", alpha = 0.5) +
+  layer_spatial(mod_ext, fill = NA, col = "black", lwd = 0.5) +
+  # annotation_scale(width_hint = 0.2, location = "br") +
+  scale_fill_manual(values = c(NA, "forestgreen"), na.value = NA) +
+  scale_x_continuous(expand = expansion(mult = c(0.04, 0.04))) +
+  scale_y_continuous(expand = expansion(mult = c(0.04, 0.04))) +
+  theme(legend.position = "none", axis.text = element_blank(), axis.ticks = element_blank())
+
+rf_pred <- rf_a + rf_b
+ggsave("images/session_3/15_rf_map.png", rf_pred, width = 12, height = 5)
+
+## Maxent model
+presence_data <- 
+  training_data %>% 
+  filter(pa %in% 1) %>% 
+  st_as_sf(coords = c("lon", "lat"), crs = 4326) %>% 
+  as_Spatial()
+
+absence_data <- 
+  training_data %>% 
+  filter(pa %in% 0) %>% 
+  st_as_sf(coords = c("lon", "lat"), crs = 4326) %>% 
+  as_Spatial()
+
+predictors <- stack(env_stack)
+
+maxent_mod <- maxent(x = predictors, p = presence_data, a = absence_data)
+
+maxent_mod
+plot(maxent_mod)
+
+bath_resp <- 
+  response(maxent_mod, at = mean, var = "bathymetry") %>% 
+  bind_cols(response(maxent_mod, at = sd, var = "bathymetry")[,2]) %>% 
+  rename(bathymetry = V1, mean = p, sd = 3) %>% 
+  mutate(hi = mean + sd, lo = mean - sd)
+
+a <-
+  response(maxent_mod, at = mean, var = "bathymetry") %>% 
+  bind_cols(response(maxent_mod, at = sd, var = "bathymetry")[,2]) %>% 
+  rename(x = V1, mean = p, sd = 3) %>% 
+  mutate(hi = mean + sd, lo = mean - sd) %>% 
+  ggplot() + 
+  geom_ribbon(aes(x = x, ymin = lo, ymax = hi), fill = "lightgrey") +
+  geom_path(aes(x = x, y = mean), col = "#619CFF", lwd = 1) +
+  geom_rug(data = as_tibble(presence_data), aes(x = bathymetry), sides = "t", inherit.aes = F, col = "darkgrey") +
+  geom_rug(data = as_tibble(absence_data), aes(x = bathymetry), sides = "b", inherit.aes = F, col = "darkgrey") +
+  scale_y_continuous(limits = c(0,1)) +
+  labs(x = "Bathymetry (m)", y = "Probability of presence") +
+  theme_bw()
+b <-
+  response(maxent_mod, at = mean, var = "current_velocity") %>%
+  bind_cols(response(maxent_mod, at = sd, var = "current_velocity")[,2]) %>% 
+  rename(x = V1, mean = p, sd = 3) %>% 
+  mutate(hi = mean + sd, lo = mean - sd) %>% 
+  ggplot() + 
+  geom_ribbon(aes(x = x, ymin = lo, ymax = hi), fill = "lightgrey") +
+  geom_path(aes(x = x, y = mean), col = "#619CFF", lwd = 1) +
+  geom_rug(data = as_tibble(presence_data), aes(x = current_velocity), sides = "t", inherit.aes = F, col = "darkgrey") +
+  geom_rug(data = as_tibble(absence_data), aes(x = current_velocity), sides = "b", inherit.aes = F, col = "darkgrey") +
+  scale_y_continuous(limits = c(0,1)) +
+  labs(x = "Current Velocity (ms-1)", y = "Probability of presence") +
+  theme_bw()
+c <-
+  response(maxent_mod, at = mean, var = "mixed_layer_depth") %>%
+  bind_cols(response(maxent_mod, at = sd, var = "mixed_layer_depth")[,2]) %>% 
+  rename(x = V1, mean = p, sd = 3) %>% 
+  mutate(hi = mean + sd, lo = mean - sd) %>% 
+  ggplot() + 
+  geom_ribbon(aes(x = x, ymin = lo, ymax = hi), fill = "lightgrey") +
+  geom_path(aes(x = x, y = mean), col = "#619CFF", lwd = 1) +
+  geom_rug(data = as_tibble(presence_data), aes(x = mixed_layer_depth), sides = "t", inherit.aes = F, col = "darkgrey") +
+  geom_rug(data = as_tibble(absence_data), aes(x = mixed_layer_depth), sides = "b", inherit.aes = F, col = "darkgrey") +
+  scale_y_continuous(limits = c(0,1)) +
+  labs(x = "Mixed Layer Depth (m)", y = "Probability of presence") +
+  theme_bw()
+d <-
+  response(maxent_mod, at = mean, var = "temperature") %>%
+  bind_cols(response(maxent_mod, at = sd, var = "temperature")[,2]) %>% 
+  rename(x = V1, mean = p, sd = 3) %>% 
+  mutate(hi = mean + sd, lo = mean - sd,
+         hi = hi/1.5, lo = 0) %>% 
+  ggplot() + 
+  geom_ribbon(aes(x = x, ymin = lo, ymax = hi), fill = "lightgrey") +
+  geom_path(aes(x = x, y = mean), col = "#619CFF", lwd = 1) +
+  geom_rug(data = as_tibble(presence_data), aes(x = temperature), sides = "t", inherit.aes = F, col = "darkgrey") +
+  geom_rug(data = as_tibble(absence_data), aes(x = temperature), sides = "b", inherit.aes = F, col = "darkgrey") +
+  scale_y_continuous(limits = c(0,1)) +
+  labs(x = "Sea Surface Temperature (˚C)", y = "Probability of presence") +
+  theme_bw()
+
+maxent_plot <- (a + b + c + d) + plot_layout(nrow = 1)
+ggsave("images/session_3/16_maxent_visreg.png", maxent_plot, width = 20, height = 5)
+
+max_eval <- evaluate(p = test_presence, a = test_absence, model = maxent_mod)
+
+plot(max_eval, "ROC", type = "l")
+
+max_threshold <- threshold(max_eval, stat = 'spec_sens')
+
+max_pred <- predict(maxent_mod, env_stack)
+max_tmap <- max_pred > max_threshold
+values(max_tmap)[values(max_tmap) < 1] <- NA
+
+
+max_a <-
+  ggplot() + 
+  annotation_map_tile('cartolight', zoom = 4) +
+  layer_spatial(max_pred) +
+  # layer_spatial(occ_vect, color = "white", alpha = 0.5) +
+  layer_spatial(mod_ext, fill = NA, col = "black", lwd = 0.5) +
+  # annotation_scale(width_hint = 0.2, location = "br") +
+  scale_fill_viridis_c(na.value = NA, name = "Model fit") +
+  scale_x_continuous(expand = expansion(mult = c(0.04, 0.04))) +
+  scale_y_continuous(expand = expansion(mult = c(0.04, 0.04))) +
+  theme(legend.position = "inside", legend.position.inside = c(0.8, 0.15), legend.title.position = "top",
+        legend.text = element_text(color = "white"), legend.title = element_text(color = "white"),
+        legend.background = element_rect(fill = NA, color = NA),
+        legend.direction = "horizontal", axis.text = element_blank(), axis.ticks = element_blank())
+
+max_b <-
+  ggplot() + 
+  annotation_map_tile('cartolight', zoom = 4) +
+  layer_spatial(max_tmap) +
+  layer_spatial(occ_vect, color = "white", alpha = 0.5) +
+  layer_spatial(mod_ext, fill = NA, col = "black", lwd = 0.5) +
+  # annotation_scale(width_hint = 0.2, location = "br") +
+  scale_fill_gradient(low = "darkgreen", high = "forestgreen", na.value = NA) +
+  scale_x_continuous(expand = expansion(mult = c(0.04, 0.04))) +
+  scale_y_continuous(expand = expansion(mult = c(0.04, 0.04))) +
+  theme(legend.position = "none", axis.text = element_blank(), axis.ticks = element_blank())
+
+max_pl <- max_a + max_b
+ggsave("images/session_3/18_max_map.png", max_pl, width = 12, height = 5)
 
 
 
