@@ -16,13 +16,23 @@ editor_options:
     wrap: 150
 ---
 
-## Session 3 - Basics of Species Distribution Models (SDMs)
+## Session 3
+
+### Basics of Species Distribution Models (SDMs)
+
+|                                 |
+|:--------------------------------|
+| ![](images/session_3/oceanicwhitetip_banner.png) |
+
+<br>
+
 
 Species distribution models are instrumental in predicting and understanding the geographic ranges of species. In this session, we will delve into the
-use of dismo, SDMtune and sdmpredictors R packages, covering the basics of species distribution modelling. Participants will learn how to construct
+use of `dismo`, `mgcv` and `randomForest` R packages, covering the basics of species distribution modelling. This will be a quick run-though over the theory and 
+workflow of how to construct SDMs using observational data, and useful resources to help you along the way. Participants will learn how to construct
 predictive models and assess habitat suitability for species.
 
-## Theory and Concept
+#### Theory and Concept
 
 Species Distribution Models (SDMs) are fundamental tools in ecology and conservation biology, aiming to understand and predict the spatial
 distribution of species based on environmental variables. At its core, SDMs are grounded in the ecological niche theory, which suggests that species
@@ -37,58 +47,244 @@ the ecological requirements and habitat preferences of species.
 <br><br>
 
 These models typically utilise various algorithms, including MaxEnt, Random Forest, and Generalized Linear Models, to predict species distributions
-across geographic areas. SDMs have diverse applications, from assessing the potential impacts of climate change on species distributions to informing
+across geographic areas. We will quickly go through an example dataset, and how different model structures and algorithm can drastically change your
+predicted distribution. SDMs have diverse applications, from assessing the potential impacts of climate change on species distributions to informing
 conservation planning and management strategies. However, they also come with limitations and uncertainties, including data quality issues,
 assumptions about species-environment relationships, and challenges in extrapolating predictions to novel environmental conditions. Continuous
 refinement and integration of multiple data sources and modeling approaches are essential for improving the accuracy and reliability of SDMs, thereby
 enhancing their utility in addressing pressing ecological and conservation challenges. In this session, we will run though a quick example of how SDMs
-are created in R, and the complexities of thier development and interpretation.
+are created in R, and the complexities of their development and interpretation.
+
+
+Here we will provide a quick tour of SDMs, but if you want a more in-depth look at what goes into building and refining a SDM, check out some of these 
+online sources ([SDM Intro](https://damariszurell.github.io/SDM-Intro/),[terra vignette](https://rspatial.org/raster/sdm/) and [Ecocommons](https://support.ecocommons.org.au/support/solutions/folders/6000240802/page/1?url_locale=)). There is also a wealth of literature on the subject
+that you can refer to, including [this curated list](https://doi.org/10.1016/j.ecolmodel.2022.110242) of R packages that you can use to explore these analyses.
+
+
+In this session we will use occurrence data on Oceanic Whitetip Sharks (*Carcharhinus longimanus*) from the Indian Ocean to model their distribution
+using five commonly used SDM algorithms. We will also finally quickly introduce a simple ensemble model workflow to show how you can integrate outputs
+from multiple algorithms to get better predictions of distribution. ***We have provided code to replicate the analysis and plotting, but as we will have***
+***limited time during this session, we dont expect everyone to run these code. You can run them on your own time to see how it works!***
 
 ------------------------------------------------------------------------------------------------------------------------------------------------------
 
-## Basic steps of building SDMs
-
-
-------------------------------------------------------------------------------------------------------------------------------------------------------
-
-### Data preperation                                       
-
-
-------------------------------------------------------------------------------------------------------------------------------------------------------
-
-### Model fitting {.tabset .tabset-fade .tabset-pills}
-
-
-
-
-#### Linear regression models (LM, GLM)                    
+#### Basic steps of building SDMs
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------------------
 
-#### Non-linear regression models (NLR, GAM)               
+#### Data preperation                                       
+
+
+
+##### Occurrence data
+
+
+
+![](images/session_3/1_occ_plot.png)
+
+
+
+##### Absence or Pseudo-absence data
+
+
+
+![](images/session_3/2_pseudo_plot.png)
+
+
+##### Environmental predictors
+
+
+
+![](images/session_3/3_env_plot.png)
+
+
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------------------
-#### Classification based models (BRT, GBM, Random Forest) 
+
+#### Model fitting {.tabset .tabset-fade .tabset-pills}
+
+<a id="session_3"></a>
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------------------
-#### Machine learning models (GBM, BRT, Random forest)     
 
+##### Linear models (LM, GLM)
+
+<br>
+
+<style>
+div.blue { background-color:#e6f0ff; border-radius: 5px; padding: 20px;}
+</style>
+<div class = "blue">
+
+
+
+
+![](images/session_3/4_glm_visreg.png)
+
+
+![](images/session_3/5_glm_persp.png)
+
+
+![](images/session_3/6_glm_auc.png)
+
+
+
+![](images/session_3/7_glm_map.png)
+
+
+
+
+</div>
+
+
+<br>
 
 ------------------------------------------------------------------------------------------------------------------------------------------------------
-#### Maximum Entropy Models (MaxEnt)                       
 
-
-------------------------------------------------------------------------------------------------------------------------------------------------------
-#### Ensemble models                                       
-
-
-------------------------------------------------------------------------------------------------------------------------------------------------------
+[Back to top](#session_3)
 
 <br><br>
 
+##### Non-linear models (NLR, GAM)               
+
+<br>
+
+<style>
+div.blue { background-color:#e6f0ff; border-radius: 5px; padding: 20px;}
+</style>
+<div class = "blue">
+
+
+
+![](images/session_3/8_gam_visreg.png)
+
+
+![](images/session_3/9_gam_persp.png)
+
+
+![](images/session_3/10_gam_auc.png)
+
+
+
+![](images/session_3/11_gam_map.png)
+
+
+
+</div>
+
+
+<br>
+
+------------------------------------------------------------------------------------------------------------------------------------------------------
+
+[Back to top](#session_3)
+
+<br><br>
+
+##### Classification models (BRT, GBM, Random Forest) 
+
+<br>
+
+<style>
+div.blue { background-color:#e6f0ff; border-radius: 5px; padding: 20px;}
+</style>
+<div class = "blue">
+
+
+
+![](images/session_3/12_rf_visreg.png)
+
+
+![](images/session_3/13_rf_persp.png)
+
+
+![](images/session_3/14_rf_auc.png)
+
+
+
+![](images/session_3/15_rf_map.png)
+
+
+
+</div>
+
+
+<br>
+
+------------------------------------------------------------------------------------------------------------------------------------------------------
+
+[Back to top](#session_3)
+
+<br><br>
+
+##### Maximum Entropy (MaxEnt)                       
+
+<br>
+
+<style>
+div.blue { background-color:#e6f0ff; border-radius: 5px; padding: 20px;}
+</style>
+<div class = "blue">
+
+
+![](images/session_3/16_maxent_visreg.png)
+
+
+![](images/session_3/17_maxent_auc.png)
+
+
+![](images/session_3/18_max_map.png)
+
+
+
+
+</div>
+
+
+<br>
+
+------------------------------------------------------------------------------------------------------------------------------------------------------
+
+[Back to top](#session_3)
+
+<br><br>
+
+##### Ensemble models                                       
+
+<br>
+
+<style>
+div.blue { background-color:#e6f0ff; border-radius: 5px; padding: 20px;}
+</style>
+<div class = "blue">
+
+
+
+![](images/session_3/19_ensemble_plot.png)
+
+
+
+
+![](images/session_3/20_ens_map.png)
+
+
+
+
+
+</div>
+
+
+<br>
+
+
+------------------------------------------------------------------------------------------------------------------------------------------------------
+
+<a href="#top" style="color:steelblue; font:bold;" >Back to top</a>
+
+<br><br>
 
 
 
