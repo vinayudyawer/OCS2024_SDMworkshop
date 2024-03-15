@@ -220,8 +220,8 @@ esri_sat <- paste0('https://services.arcgisonline.com/arcgis/rest/services/',
                    'World_Imagery/MapServer/tile/${z}/${y}/${x}.jpeg')
 ggplot() +
   annotation_map_tile(type = esri_sat, zoom = 8) +
-  layer_spatial(data = pred_data, aes(color = id)) +
-  layer_spatial(data = pred_path, aes(color = id)) + 
+  geom_spatial_point(data = pred_data, aes(x = lon, y = lat, color = id), crs = 4326) +
+  geom_spatial_path(data = pred_data, aes(x = lon, y = lat, color = id), crs = 4326) + 
   labs(title = 'Date: {date}', x = 'Longitude', y = 'Latitude') +
   transition_time(date)
 
