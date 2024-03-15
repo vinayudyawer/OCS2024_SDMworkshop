@@ -141,24 +141,26 @@ ggsave("images/session_3/2_pseudo_plot.png", pseudo_plot, width = 6, height = 5)
 #   rast()
 # 
 # names(env_stack) <- c("bathymetry", "current_velocity", "mixed_layer_depth", "temperature")
+# env_stack <- aggregate(env_stack, fact = 4)
 # plot(env_stack)
-# 
 # writeRaster(env_stack, "data/env_layers.tif", overwrite = T)
+
 
 env_stack <- rast("https://raw.githubusercontent.com/vinayudyawer/OCS2024_SDMworkshop/main/data/session_3/env_layers.tif")
 
-eplot1 <-
+
+eplot4 <-
   ggplot() + 
   annotation_map_tile('cartolight', zoom = 4) +
   # layer_spatial(pseudo_vect, color = "red", alpha = 0.3) +
   # layer_spatial(occ_vect, color = "white") +
-  layer_spatial(data = env_stack[[1]]) +
+  layer_spatial(data = env_stack[[4]]) +
   layer_spatial(mod_ext, fill = NA, col = "black", lwd = 0.5) +
   annotation_scale(width_hint = 0.2, location = "br") +
   scale_x_continuous(expand = expansion(mult = c(0.04, 0.04))) +
   scale_y_continuous(expand = expansion(mult = c(0.04, 0.04))) +
   scale_fill_viridis_c(na.value = NA, option = "H") +
-  labs(title = "Bathymetry") +
+  labs(title = "Sea Surface Temperature") +
   theme(legend.position = "none", axis.text = element_blank(), axis.ticks = element_blank())
 
 eplot <- eplot1 + eplot2 + eplot3 + eplot4 + plot_layout(nrow = 1)
@@ -188,7 +190,7 @@ library(dismo)
 library(visreg)
 
 model_data <- 
-  read_csv("https://raw.githubusercontent.com/vinayudyawer/OCS2024_SDMworkshop/main/data/model_data.csv") %>% 
+  read_csv("https://raw.githubusercontent.com/vinayudyawer/OCS2024_SDMworkshop/main/data/session_3/model_data.csv") %>% 
   mutate(pa = factor(pa))
 
 training_data <- model_data %>% filter(test_train %in% "train")
@@ -346,7 +348,7 @@ visreg2d(rf_mod, xvar = "bathymetry", yvar = "temperature", plot.type = "persp",
          xlab = "Bathymetry (m)", ylab = "Sea Surface Temparature (˚C)", zlab = "Probability of presence",
          theta = 145, phi = 15)
 
-rf_eval <- evaluate(p = test_presence, a = test_absence, model = rf_mod, type = "vote")
+rf_eval <- evaluate(p = test_presence, a = test_absence, model = rf_mod, type = "prob")
 
 plot(rf_eval, "ROC", type = "l")
 
@@ -403,13 +405,6 @@ predictors <- stack(env_stack)
 maxent_mod <- maxent(x = predictors, p = presence_data, a = absence_data)
 
 maxent_mod
-plot(maxent_mod)
-
-bath_resp <- 
-  response(maxent_mod, at = mean, var = "bathymetry") %>% 
-  bind_cols(response(maxent_mod, at = sd, var = "bathymetry")[,2]) %>% 
-  rename(bathymetry = V1, mean = p, sd = 3) %>% 
-  mutate(hi = mean + sd, lo = mean - sd)
 
 a <-
   response(maxent_mod, at = mean, var = "bathymetry") %>% 
@@ -454,8 +449,7 @@ d <-
   response(maxent_mod, at = mean, var = "temperature") %>%
   bind_cols(response(maxent_mod, at = sd, var = "temperature")[,2]) %>% 
   rename(x = V1, mean = p, sd = 3) %>% 
-  mutate(hi = mean + sd, lo = mean - sd,
-         hi = hi/1.5, lo = 0) %>% 
+  mutate(hi = mean + sd, lo = mean - sd) %>% 
   ggplot() + 
   geom_ribbon(aes(x = x, ymin = lo, ymax = hi), fill = "lightgrey") +
   geom_path(aes(x = x, y = mean), col = "#619CFF", lwd = 1) +
@@ -471,6 +465,7 @@ ggsave("images/session_3/16_maxent_visreg.png", maxent_plot, width = 20, height 
 max_eval <- evaluate(p = test_presence, a = test_absence, model = maxent_mod)
 
 plot(max_eval, "ROC", type = "l")
+plot(maxent_mod)
 
 max_threshold <- threshold(max_eval, stat = 'spec_sens')
 
@@ -516,7 +511,7 @@ model_maps <-
   (glm_a + labs(title = "GLM (AUC = 0.675)")) +
   (gam_a + labs(title = "GAM (AUC = 0.81)")) +
   (rf_a + labs(title = "Random Forest (AUC = 0.5)")) +
-  (max_a + labs(title = "Maxent (AUC = 0.801)")) +
+  (max_a + labs(title = "Maxent (AUC = 0.797)")) +
   plot_layout(nrow = 1)
 
 ggsave("images/session_3/19_ensemble_plot.png", model_maps, width = 20, height = 5)
@@ -529,7 +524,7 @@ average_model <- mean(models)
 average_tmap <- average_model> 0.5
 values(average_tmap)[values(average_tmap) < 1] <- NA
 
-w_average_model <- weighted.mean(models, w = c(0.675, 0.81, 0.5, 0.801))
+w_average_model <- weighted.mean(models, w = c(0.675, 0.81, 0.5, 0.797))
 w_average_tmap <- w_average_model> 0.5
 values(w_average_tmap)[values(w_average_tmap) < 1] <- NA
 

@@ -78,7 +78,7 @@ from multiple algorithms to get better predictions of distribution. ***We have p
 
 
 Building a SDM is an iterative process, and typically involves several steps. The paper [Zurell et al. 2020]( https://doi.org/10.1111/ecog.04960) provides a
-comprehensive step by step run through of a standard protocol on how to develop SDMs and how to report then in papers to allow for reproducibility. 
+comprehensive step by step run through of a standard protocol on how to develop SDMs and how to report them in papers to allow for reproducibility. 
 Here's a quick overview:
 
 <br><br>
@@ -180,7 +180,7 @@ workflow can be modified to use movement data to inform distribution models in t
 
 ------------------------------------------------------------------------------------------------------------------------------------------------------
 
-##### Linear models (LM, GLM)
+##### Linear models
 
 <br>
 
@@ -218,7 +218,7 @@ div.blue { background-color:#e6f0ff; border-radius: 5px; padding: 20px;}
 
 <br><br>
 
-##### Non-linear models (NLR, GAM)               
+##### Non-linear models             
 
 <br>
 
@@ -254,7 +254,7 @@ div.blue { background-color:#e6f0ff; border-radius: 5px; padding: 20px;}
 
 <br><br>
 
-##### Classification models (BRT, GBM, Random Forest) 
+##### Classification models
 
 <br>
 
@@ -290,7 +290,7 @@ div.blue { background-color:#e6f0ff; border-radius: 5px; padding: 20px;}
 
 <br><br>
 
-##### Maximum Entropy (MaxEnt)                       
+##### Maximum Entropy                      
 
 <br>
 
@@ -322,7 +322,7 @@ div.blue { background-color:#e6f0ff; border-radius: 5px; padding: 20px;}
 
 <br><br>
 
-##### Ensemble models                                       
+#### Ensemble model approach
 
 <br>
 
