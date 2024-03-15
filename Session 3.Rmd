@@ -220,14 +220,21 @@ not found here!), this is very valuable for SDM modelling. However, in most real
 absence data known as 'pseudo'-absences. Pseudo-absence data are generated using various techniques such as random sampling from areas where the species has not been 
 observed, environmental similarity methods, or background sampling from the study area.
 
-In R, generating pseudo-absence data can be done using functions like randomPoints() from the dismo package or randomPoints function from the spatstat package. Additionally,
-some SDM packages in R, such as dismo, biomod2, and MaxEnt, include built-in functions for generating pseudo-absence data as part of their modeling workflow.
+In R, generating pseudo-absence data can be done using functions like 'randomPoints()' from the `dismo` package or 'st_sample()' function from the `sf` package. Additionally,
+some SDM packages in R, such as `dismo`, `biomod2`, and `MaxEnt`, include built-in functions for generating pseudo-absence data as part of their modeling workflow.
 
 It's important to note that the selection and quality of pseudo-absence data can significantly impact model performance and interpretation. Careful consideration should be 
 given to the method used for generating pseudo-absences to ensure they adequately represent areas where the species is genuinely absent while minimizing sampling bias.
 
+<br>
+
+```{r, eval=FALSE}
+## Lets define our model extent to within our occurrence data
+
+model_extent <- st_read("~/Desktop/mod_ext.GeoJSON")
 
 
+```
 
 ![](images/session_3/2_pseudo_plot.png)
 
