@@ -309,8 +309,6 @@ plot(env_stack)
 
 #### Model fitting {.tabset .tabset-fade .tabset-pills}
 
-<a id="session_3"></a>
-
 
 Now that we have all our basic components to build a SDM, lets have a look at some of the algorithms commonly used to build distribution models. Here
 we will use the occurrence, pseudo-absence and environmental data to build four types of models. For each algorithm we will build the model, explore
@@ -348,11 +346,12 @@ model_data <-
   na.omit()
 
 ```
-```{r, echo=FALSE, eval=TRUE, message=FALSE}
+```{r, echo=FALSE, eval=TRUE, message=FALSE, warning=FALSE, error=FALSE}
 model_data <- 
   read_csv("https://raw.githubusercontent.com/vinayudyawer/OCS2024_SDMworkshop/main/data/session_3/model_data.csv") %>% 
   na.omit() %>% 
   mutate(pa = factor(pa))
+env_stack <- rast("https://raw.githubusercontent.com/vinayudyawer/OCS2024_SDMworkshop/main/data/session_3/env_layers.tif")
 ```
 ```{r}
 
@@ -382,14 +381,13 @@ test_absence <-
 
 <br>
 
-Click through the below buttons to have a look at how each model is built and evaluated:
+**Click through the below buttons to have a look at how each model is built and evaluated:**
 
+<a id="session_3"></a>
 
 ------------------------------------------------------------------------------------------------------------------------------------------------------
 
 ##### Linear models
-
-<br>
 
 <style>
 div.blue { background-color:#e6f0ff; border-radius: 5px; padding: 20px;}
@@ -481,8 +479,6 @@ plot(glm_link > glm_threshold)
 <br><br>
 
 ##### Non-linear models             
-
-<br>
 
 <style>
 div.blue { background-color:#e6f0ff; border-radius: 5px; padding: 20px;}
@@ -577,8 +573,6 @@ plot(gam_link > gam_threshold)
 
 ##### Classification models
 
-<br>
-
 <style>
 div.blue { background-color:#e6f0ff; border-radius: 5px; padding: 20px;}
 </style>
@@ -601,7 +595,6 @@ rf_mod <- randomForest(pa ~ bathymetry + current_velocity + mixed_layer_depth + 
 
 
 rf_mod
-
 
 ```
 
@@ -676,8 +669,6 @@ plot(rf_link)
 
 ##### Maximum Entropy                      
 
-<br>
-
 <style>
 div.blue { background-color:#e6f0ff; border-radius: 5px; padding: 20px;}
 </style>
@@ -693,7 +684,7 @@ species-environment relationships.
 Here we will use MaxEnt to build this SDM using the `dismo` package. This model requires the data in a slightly different format. 
 
 
-```{r, message=FALSE, warning=FALSE}
+```{r, eval=FALSE, message=FALSE, warning=FALSE}
 ## Setup the input data to enable the maxent() function in `dismo`
 presence_data <- 
   training_data %>% 
@@ -748,15 +739,15 @@ And finally we can use the model to predict the distribution using the 'predict(
 
 ```{r, eval=FALSE}
 ## We can predict and plot the model probability (continuous value between 0 and 1)
-maxent_pred <- terra::predict(maxent_mod, env_stack)
+maxent_predict <- terra::predict(maxent_mod, env_stack)
 
-plot(maxent_pred)
+plot(maxent_predict)
 
 ## We can now threshold the output to a map identifying the species distribution
 # define the threshold using the evaluation metrics estimated earlier
 maxent_threshold <- threshold(maxent_eval, stat = 'spec_sens')
 
-plot(maxent_pred > maxent_threshold)
+plot(maxent_predict > maxent_threshold)
 
 ```
 
@@ -774,33 +765,55 @@ plot(maxent_pred > maxent_threshold)
 
 <br><br>
 
-#### Ensemble model approach
+#### **Ensemble Models**
 
-<br>
+Ensemble models in SDMs are approaches that combine predictions from multiple individual models to generate a more robust and accurate prediction of 
+species distributions. These models leverage the diversity of individual modeling techniques or variations in model parameters to capture different aspects
+of species-environment relationships and uncertainties in predictions. Common ensemble methods include model averaging, where predictions from individual 
+models are averaged, and stacking, where predictions are combined using a meta-model. Ensemble models often outperform single-model approaches by reducing
+overfitting, improving generalization, and providing more reliable estimates of uncertainty in predictions. They are valuable tools for addressing the 
+complexities and uncertainties inherent in SDMs,
 
-<style>
-div.blue { background-color:#e6f0ff; border-radius: 5px; padding: 20px;}
-</style>
-<div class = "blue">
+
+Here we will run a simple example of how ensemble models are created. Since we have already made predictions using GLM, GAM, Random Forest and MaxEnt algorithms
+we can combine these predictions to develop an ensembe model output. The `terra` package makes this very efficient and fast:
 
 
+```{r, eval=FALSE}
+## Lets create a raster stack compiling all our predictions so far
+models <- c(glm_predict, gam_predict, rf_predict, maxeny_predict)
+
+names(models) <- c("GLM", "GAM", "RF", "MaxEnt")
+
+plot(models)
+
+```
 
 ![](images/session_3/19_ensemble_plot.png)
 
+Now we can develop a simple average model, and a weighted average model to incorporate the accuracy in each model prediction in our ensemble output:
+
+```{r, eval=FALSE}
+## Simple average model
+average_model <- mean(models)
+average_threshold_map <- average_model> 0.5
+
+plot(average_model)
+plot(average_threshold_map)
 
 
+## Now with a weighted mean model (weighted using model AUCs)
+w_average_model <- weighted.mean(models, w = c(0.675, 0.81, 0.5, 0.797))
+w_average_threshold_map <- w_average_model> 0.5
+
+plot(w_average_model)
+plot(w_average_threshold_map)
+
+```
 
 ![](images/session_3/20_ens_map.png)
 
-
-
-
-
-</div>
-
-
 <br>
-
 
 ------------------------------------------------------------------------------------------------------------------------------------------------------
 
