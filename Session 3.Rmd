@@ -26,7 +26,6 @@ editor_options:
 
 <br>
 
-
 Species distribution models are instrumental in predicting and understanding the geographic ranges of species. In this session, we will delve into the
 use of `dismo`, `mgcv` and `randomForest` R packages, covering the basics of species distribution modelling. This will be a quick run-though over the theory and 
 workflow of how to construct SDMs using observational data, and useful resources to help you along the way. Participants will learn how to construct
@@ -70,9 +69,10 @@ using five commonly used SDM algorithms. We will also finally quickly introduce 
 from multiple algorithms to get better predictions of distribution. ***We have provided code to replicate the analysis and plotting, but as we will have***
 ***limited time during this session, we dont expect everyone to run these code. You can run them on your own time to see how it works!***
 
-------------------------------------------------------------------------------------------------------------------------------------------------------
+<br><br>
 
-<br>
+
+------------------------------------------------------------------------------------------------------------------------------------------------------
 
 #### Basic steps of building SDMs
 
@@ -135,7 +135,7 @@ species presence and response curves. Iterate through the modeling process, refi
 to improve accuracy and robustness.
 
 
-<br>
+<br><br>
 
 ------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -147,22 +147,92 @@ workflow can be modified to use movement data to inform distribution models in t
 
 <br>
 
-##### Occurrence data
+##### ***Occurrence data***
 
+Occurrence data used for SDMs typically include records of species presence or presence-absence across geographic locations. These data can be obtained from 
+various sources, including published literature, museum collections, citizen science projects, and online databases. In R, there are several packages and 
+resources available for accessing occurrence data:
+
+
+- [***GBIF***](https://www.gbif.org) (Global Biodiversity Information Facility): The [`rgbif` package](https://docs.ropensci.org/rgbif/articles/rgbif.html) allows 
+you to search and download occurrence records from the GBIF database directly within R.
+- [***rvertnet***](https://github.com/ropensci/rvertnet): This package provides access to occurrence data from multiple vertebrate-focused biodiversity data networks,
+including VertNet, MaNIS, and ORNIS.
+- [***spocc***](https://github.com/ropensci/spocc): This package provides a unified interface to several online species occurrence data sources, including GBIF, 
+iNaturalist, and eBird.
+- [***ALA***](https://www.ala.org.au) (Atlas of Living Australia): The [`galah`](https://github.com/AtlasOfLivingAustralia/galah-R) package allows you to access 
+species occurrence data from the ALA database.
+- ***Data repositories***: Many research papers provide access to their occurrence data through online repositories such as [Dryad](https://datadryad.org/stash)
+or [Figshare](https://figshare.com). You can download these datasets directly or use APIs if available.
+
+
+
+Once you have obtained the occurrence data, you can import it into R using the functions we discussed in Session 1, or specific functions provided by the packages 
+mentioned above. Be sure to clean and preprocess the data as needed before using it in your SDM analysis. Here we have accessed some example data on Oceanic Whitetip
+Sharks (*Carcharhinus longimanus*) in the Indian Ocean from [GBIF](https://www.gbif.org), and using the code from Session 1 have plotted it using `ggspatial`.
+
+<br>
+
+
+```{r, eval=FALSE, message=FALSE}
+## Lets first load some useful packages
+library(tidyverse)
+library(sf)
+library(terra)
+library(ggspatial)
+library(dismo)
+library(mgcv)
+library(visreg)
+
+
+```
+
+
+
+```{r, eval=FALSE}
+## We can call on the data from the workshop GitHub page directly
+
+occ <- read_csv("https://raw.githubusercontent.com/vinayudyawer/OCS2024_SDMworkshop/main/data/session_3/Oceanic%20whitetip%20occ.csv")
+
+occ_sf <-
+  occ %>% 
+  st_as_sf(coords = c("lon", "lat"), crs = 4326, remove = F)
+
+ggplot() + 
+  annotation_map_tile('cartolight', zoom = 4) +
+  layer_spatial(occ_sf, color = "black") +
+  annotation_scale(width_hint = 0.2, location = "br") +
+  theme_void()
+
+
+```
 
 
 ![](images/session_3/1_occ_plot.png)
 
 
 
-##### Absence or Pseudo-absence data
+##### ***Absence or Pseudo-absence data***
+
+Now that we have occurrence data, we need data used to represent locations where a species is presumed to be absent. These data points serve as a contrast to presence
+data and are essential for modeling the species' distribution accurately. If we have quantitative data of confirmed absences (i.e., we know for sure this species is 
+not found here!), this is very valuable for SDM modelling. However, in most real-world cases, this kind of information is not available. In which case, we use 'presumed'
+absence data known as 'pseudo'-absences. Pseudo-absence data are generated using various techniques such as random sampling from areas where the species has not been 
+observed, environmental similarity methods, or background sampling from the study area.
+
+In R, generating pseudo-absence data can be done using functions like randomPoints() from the dismo package or randomPoints function from the spatstat package. Additionally,
+some SDM packages in R, such as dismo, biomod2, and MaxEnt, include built-in functions for generating pseudo-absence data as part of their modeling workflow.
+
+It's important to note that the selection and quality of pseudo-absence data can significantly impact model performance and interpretation. Careful consideration should be 
+given to the method used for generating pseudo-absences to ensure they adequately represent areas where the species is genuinely absent while minimizing sampling bias.
+
 
 
 
 ![](images/session_3/2_pseudo_plot.png)
 
 
-##### Environmental predictors
+##### ***Environmental predictors***
 
 
 
