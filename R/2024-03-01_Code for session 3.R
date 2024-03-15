@@ -145,7 +145,7 @@ ggsave("images/session_3/2_pseudo_plot.png", pseudo_plot, width = 6, height = 5)
 # 
 # writeRaster(env_stack, "data/env_layers.tif", overwrite = T)
 
-env_stack <- rast("https://raw.githubusercontent.com/vinayudyawer/OCS2024_SDMworkshop/main/data/env_layers.tif")
+env_stack <- rast("https://raw.githubusercontent.com/vinayudyawer/OCS2024_SDMworkshop/main/data/session_3/env_layers.tif")
 
 eplot1 <-
   ggplot() + 
