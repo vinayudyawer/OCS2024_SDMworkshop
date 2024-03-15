@@ -32,6 +32,10 @@ use of `dismo`, `mgcv` and `randomForest` R packages, covering the basics of spe
 workflow of how to construct SDMs using observational data, and useful resources to help you along the way. Participants will learn how to construct
 predictive models and assess habitat suitability for species.
 
+<br>
+
+------------------------------------------------------------------------------------------------------------------------------------------------------
+
 #### Theory and Concept
 
 Species Distribution Models (SDMs) are fundamental tools in ecology and conservation biology, aiming to understand and predict the spatial
@@ -42,7 +46,7 @@ the ecological requirements and habitat preferences of species.
 
 <br><br>
 
-![](images/session_3/0_SDM%20schematic_Marcelino%20and%20Verbruggen%202015.png)
+![(Source: Marcelino and Verbruggen 2015)](images/session_3/0_SDM_schematic.png)
 
 <br><br>
 
@@ -68,14 +72,80 @@ from multiple algorithms to get better predictions of distribution. ***We have p
 
 ------------------------------------------------------------------------------------------------------------------------------------------------------
 
+<br>
+
 #### Basic steps of building SDMs
 
+
+Building a SDM is an iterative process, and typically involves several steps. The paper [Zurell et al. 2020]( https://doi.org/10.1111/ecog.04960) provides a
+comprehensive step by step run through of a standard protocol on how to develop SDMs and how to report then in papers to allow for reproducibility. 
+Here's a quick overview:
+
+<br><br>
+
+![(Source: Zurell et al. 2020)](images/session_3/0_SDM_steps.png)
+
+<br><br>
+
+
+***Overview/Conceptualisation -*** One of the key steps in developing SDMs is first conceptualising the objectives, available data, and the relevance of SDMs for your research
+question. This includes understanding if SDMs are going to tell you what you need to answer your hypothesis. Similarly, if you do not have 
+access to relevant data, then the outputs of SDMs may not be useful (the old GIGO adage: garbage in, gargabe out!). In this step, it is worth 
+overviewing and conceptialising the objectives of the modelling excercise, and asscertain if this model is relevant for the taxon, location,
+spatial and temporal scale of your study system.
+
+<br>
+
+
+***Data Collection, preperation and exploration -*** The next step we gather occurrence data for the species of interest (e.g., presence-only or presence-absence data) and environmental variables
+(e.g., temperature, bathymetry) that may be biologically relevant for the study area and the species of interest. Organise and clean the data, 
+ensuring that it's in a suitable format for analysis. This may involve handling missing values, converting data types, and standardizing units.
+Explore the relationships between species occurrence and environmental variables using visualization techniques such as scatter plots, histograms, 
+and correlation matrices.
+
+<br>
+
+
+***Model selection, fitting and training -*** We then choose an appropriate modeling technique for your data. Common SDM algorithms in R include MaxEnt (using the `dismo` package), Generalized 
+Linear Models (GLMs) or Generalized Additive Models (GAMs) (using the `mgcv` package), and Random Forest (using the `randomForest` package). We then
+Split the data into training and testing sets needed to evaluate model performance further down the track. We finally fit the chosen model using the 
+training data. We will cover some of these techincal steps later in this session.
+
+<br>
+
+
+***Model assessment and exploration -*** Once models have been fit, we assess the performance of the model using evaluation metrics such as Area Under the Receiver Operating Characteristic 
+Curve (AUC-ROC), Area Under the Precision-Recall Curve (AUC), or True Skill Statistic (TSS). We also explore the response curves for the model to
+identify how each explanatory predictor impacts the probability of presence of your species. Response curves and variable importance plots can tell 
+you if the predictor variables used are relevant, or having any influence on the model.
+
+<br>
+
+
+***Model prediction and visualisation -*** Once the model is trained and evaluated, use it to predict species distributions across the study area based on environmental variables. Visualize 
+the predicted species distribution map using mapping packages like `terra` or `ggplot2`, along with additional spatial data if necessary. Validate the 
+predicted distributions against the testing subset of data, independent occurrence data or expert knowledge to verify the accuracy and reliability of 
+the model. 
+
+<br>
+
+
+***Refinement and Iteration -*** Refinement is key in SDMs, and you can often go through 10s of iterations before you have a properly fitted model that provides accurate estimates of 
+species presence and response curves. Iterate through the modeling process, refining the model and incorporating additional data or variables as needed
+to improve accuracy and robustness.
+
+
+<br>
 
 ------------------------------------------------------------------------------------------------------------------------------------------------------
 
 #### Data preperation                                       
 
+Here we will go through a quick workflow in R to enable a ***very simple*** SDM, from sourcing occurrence data all the way to building ensemble models. 
+Note, this is an overly simplistic example just to get everyone up to speed on how SDMs operate using occurrence data. We will go through how this modelling
+workflow can be modified to use movement data to inform distribution models in the next session.
 
+<br>
 
 ##### Occurrence data
 
