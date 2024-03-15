@@ -77,7 +77,7 @@ from multiple algorithms to get better predictions of distribution. ***We have p
 #### Basic steps of building SDMs
 
 
-Building a SDM is an iterative process, and typically involves several steps. The paper [Zurell et al. 2020]( https://doi.org/10.1111/ecog.04960) provides a
+Building a SDM is an iterative process, and typically involves several steps. The paper [Zurell et al. 2020](https://doi.org/10.1111/ecog.04960) provides a
 comprehensive step by step run through of a standard protocol on how to develop SDMs and how to report them in papers to allow for reproducibility. 
 Here's a quick overview:
 
@@ -174,13 +174,16 @@ Sharks (*Carcharhinus longimanus*) in the Indian Ocean from [GBIF](https://www.g
 <br>
 
 
-```{r, eval=FALSE, message=FALSE}
+```{r, eval=TRUE, message=FALSE, warning=FALSE}
 ## Lets first load some useful packages
 library(tidyverse)
 library(sf)
 library(terra)
+library(raster)
 library(ggspatial)
 library(dismo)
+library(stats)
+library(randomForest)
 library(mgcv)
 library(visreg)
 
@@ -194,13 +197,14 @@ library(visreg)
 
 occ <- read_csv("https://raw.githubusercontent.com/vinayudyawer/OCS2024_SDMworkshop/main/data/session_3/Oceanic%20whitetip%20occ.csv")
 
-occ_sf <-
+occ_vect <-
   occ %>% 
-  st_as_sf(coords = c("lon", "lat"), crs = 4326, remove = F)
+  st_as_sf(coords = c("lon", "lat"), crs = 4326, remove = F) %>% 
+  vect()
 
 ggplot() + 
   annotation_map_tile('cartolight', zoom = 4) +
-  layer_spatial(occ_sf, color = "black") +
+  layer_spatial(occ_vect, color = "black") +
   annotation_scale(width_hint = 0.2, location = "br") +
   theme_void()
 
@@ -210,7 +214,7 @@ ggplot() +
 
 ![](images/session_3/1_occ_plot.png)
 
-
+<br>
 
 ##### ***Absence or Pseudo-absence data***
 
@@ -230,22 +234,75 @@ given to the method used for generating pseudo-absences to ensure they adequatel
 
 ```{r, eval=FALSE}
 ## Lets define our model extent to within our occurrence data
+model_extent <- st_read("https://raw.githubusercontent.com/vinayudyawer/OCS2024_SDMworkshop/main/data/session_3/mod_ext.GeoJSON")
 
-model_extent <- st_read("~/Desktop/mod_ext.GeoJSON")
+## upload pseudo absence points from the GitHub page
+pseudo_vect <- 
+  read_csv("https://raw.githubusercontent.com/vinayudyawer/OCS2024_SDMworkshop/main/data/session_3/Oceanic%20whitetip%20peudo_absence.csv") %>% 
+  st_as_sf(coords = c("lon", "lat"), crs = 4326, remove = F) %>% 
+  vect()
+
+
+ggplot() + 
+  annotation_map_tile('cartolight', zoom = 4) +
+  layer_spatial(pseudo_vect, color = "red", alpha = 0.3) +
+  layer_spatial(occ_vect, color = "black") +
+  layer_spatial(model_extent, fill = NA, col = "black", lwd = 0.5) +
+  annotation_scale(width_hint = 0.2, location = "br") +
+  theme_void()
 
 
 ```
 
 ![](images/session_3/2_pseudo_plot.png)
 
+<br>
 
 ##### ***Environmental predictors***
+
+The final component required to run a basic SDM is the model predictors. When developing SDMs, model predictors take the format of rasterised gridded data. These datasets
+include climate variables (e.g., temperature, current, wind), biological variables (e.g., primary productivity, prey density) or habitat characteristics
+(e.g., habitat type, slope, bathymetry). Now when developing large scale models like we are doing here, using remote sensing datasets provide a great way to include ecologically
+and biologically relevant predictor variables that can inform the probability of presence of the target species. When choosing and processing environmental predictor variables
+for SDMs, several steps are essential:
+
+
+- ***Selection of predictors -*** Identify variables that are likely to influence the distribution of hte species of interest.
+- ***Data acquisition -*** Obtain spatial datasets for the selected predictors. There are several online data sources where this data can be obtained from. The two most useful
+sources are from the [**MARSPEC**](http://marspec.weebly.com) dataset, and the [**Bio-ORACLE**](https://bio-oracle.org) dataset. These datasets can be accessed either through 
+each of the dataset websites linked here, or can be directly accessed and downloaded through R using the [`sdmpredictors`](https://cran.r-project.org/web/packages/sdmpredictors/vignettes/quickstart.html) package.
+- ***Data preprocessing -*** Preprocess the environmental predictor data to ensure consistency and compatibility with the species occurrence data. This may involve resampling 
+or reprojecting datasets to a common spatial resolution and coordinate system, masking out irrelevant areas (e.g., land), and handling missing or erroneous values. This can be
+done easily in R using the `sf` and `terra` packages.
+- ***Variable reduction -*** Assess multicollinearity among predictors and consider reducing the number of variables to avoid overfitting and improve model interpretability. 
+Techniques such as principal component analysis (PCA), variable clustering, or expert knowledge can aid in identifying redundant variables.
+- ***Biological relevance -*** Consider the biological relevance of predictors to the species being modeled. Exclude variables that are not ecologically meaningful or are known 
+to have little influence on the species distribution.
+- ***Variable transformation -*** Transform predictors if necessary to meet model assumptions or improve model fit. Common transformations include logarithmic or square root 
+transformations for skewed variables or standardization to a common scale.
+- ***Variable correlation -*** Examine pairwise correlations among predictors to ensure they are not overly correlated, as this can lead to unstable model estimates. Consider 
+removing highly correlated variables or using regularization techniques to mitigate collinearity effects.
+
+
+Here we have accessed four environmental variables from the [Bio-ORACLE](https://bio-oracle.org) dataset, including **bathymetry**, **current velocity**, **mixed layer depth** and 
+**sea surface temperature**. We have selected just four variables to simplify this excersise, but keep in mind you will need to have a closer look at variables when modelling your
+own SDM to make sure the variables are ecologically relevant to your species. Similarly, conducting pairwise correlations should be conducted to make sure environmental variables
+are not overly correlated, which will influence model outputs.
+
+
+```{r, eval=FALSE}
+## Lets download the example environmental variables and plot them
+env_stack <- rast("https://raw.githubusercontent.com/vinayudyawer/OCS2024_SDMworkshop/main/data/session_3/env_layers.tif")
+
+plot(env_stack)
+
+```
 
 
 
 ![](images/session_3/3_env_plot.png)
 
-
+<br><br>
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -253,6 +310,79 @@ model_extent <- st_read("~/Desktop/mod_ext.GeoJSON")
 #### Model fitting {.tabset .tabset-fade .tabset-pills}
 
 <a id="session_3"></a>
+
+
+Now that we have all our basic components to build a SDM, lets have a look at some of the algorithms commonly used to build distribution models. Here
+we will use the occurrence, pseudo-absence and environmental data to build four types of models. For each algorithm we will build the model, explore
+the model responses, evaluate the model accurracy, and finally predict a spatial probability of presence to define the species' distribution. Before we
+get started, lets first format our model data and develop a training and testing dataset to allow model evaluation.
+
+
+```{r, eval=FALSE}
+## Lets extract environmental variables associated with all the occurrence and pseudo-absence data
+
+# occurrence data extraction
+ext_occ <- 
+  extract(env_stack, occ_vect) %>% 
+  mutate(pa = 1, 
+         lat = occ_vect$lat, 
+         lon = occ_vect$lon, 
+         kfold = kfold(ext_occ, 5),
+         test_train = ifelse(kfold == 1, "test", "train"))
+
+# pseudo-absence data extraction
+ext_pseudo <- 
+  extract(env_stack, pseudo_vect) %>% 
+  mutate(pa = 0, 
+         lat = pseudo_vect$lat, 
+         lon = pseudo_vect$lon, 
+         kfold = kfold(ext_pseudo, 5),
+         test_train = ifelse(kfold == 1, "test", "train"))
+
+# put together the dataset and configure them to build models
+model_data <- 
+  bind_rows(ext_occ, ext_pseudo) %>% 
+  as_tibble() %>% 
+  transmute(pa = factor(pa), lon, lat, bathymetry, current_velocity, 
+            mixed_layer_depth, temperature, test_train) %>% 
+  na.omit()
+
+```
+```{r, echo=FALSE, eval=TRUE, message=FALSE}
+model_data <- 
+  read_csv("https://raw.githubusercontent.com/vinayudyawer/OCS2024_SDMworkshop/main/data/session_3/model_data.csv") %>% 
+  na.omit() %>% 
+  mutate(pa = factor(pa))
+```
+```{r}
+
+## Now we can partition our data into 'training' datasets (to model) 
+## and 'testing' datasets (to evaluate models)
+
+training_data <- 
+  model_data %>% 
+  filter(test_train %in% "train")
+
+test_presence <- 
+  model_data %>% 
+  filter(test_train %in% "test") %>% 
+  filter(pa %in% 1) %>% 
+  st_as_sf(coords = c("lon", "lat"), crs = 4326) %>% 
+  as_Spatial()
+
+test_absence <-
+  model_data %>% 
+  filter(test_train %in% "test") %>% 
+  filter(pa %in% 0) %>% 
+  st_as_sf(coords = c("lon", "lat"), crs = 4326) %>% 
+  as_Spatial()
+
+
+```
+
+<br>
+
+Click through the below buttons to have a look at how each model is built and evaluated:
 
 
 ------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -267,25 +397,80 @@ div.blue { background-color:#e6f0ff; border-radius: 5px; padding: 20px;}
 <div class = "blue">
 
 
+Linear models are a versatile way to explore relatively simplistic relationships between occurrence and environmental data. Here we will use a Generalised
+Linear Model (GLM) to build our first SDM using the `stats` package. 
 
+
+```{r}
+## Build GLM model
+glm_mod <- glm(pa ~ bathymetry + current_velocity + mixed_layer_depth + temperature, 
+               data = training_data, family = binomial(link = "logit"))
+
+
+summary(glm_mod)
+
+
+```
+
+
+We can now use the `visreg` package to look at the response curves of this model:
+
+```{r, eval=FALSE}
+visreg(glm_mod, scale = "response", gg = TRUE)
+
+```
 
 ![](images/session_3/4_glm_visreg.png)
 
 
+We can also look at how two variables may interact with each other in the model:
+
+```{r, eval=FALSE}
+visreg2d(glm_mod, xvar = "bathymetry", yvar = "temperature", plot.type = "persp", scale = "response",
+         xlab = "Bathymetry (m)", ylab = "Sea Surface Temparature (˚C)", zlab = "Probability of presence",
+         theta = 145, phi = 15, zlim = c(0,1))
+
+```
+
 ![](images/session_3/5_glm_persp.png)
 
+We can now evaluate the model by quantifying false positive and true positive rates using the 'testing' dataset
+
+```{r, eval=FALSE}
+## using the evaluate() function in the `dismo` package
+glm_eval <- evaluate(p = test_presence, a = test_absence, model = glm_mod)
+
+plot(glm_eval, "ROC", type = "l")
+
+```
 
 ![](images/session_3/6_glm_auc.png)
 
+And finally we can use the model to predict the distribution using the 'predict()' function in the `terra` package:
 
+
+```{r, eval=FALSE}
+## We can predict and plot the model response (continuous value between 0 and 1)
+glm_predict <- terra::predict(env_stack, glm_mod, type = "response")
+
+plot(glm_predict)
+
+## We can now threshold the output to a map identifying the species distribution
+# we need to first predict the model 'link' function
+glm_link <- terra::predict(env_stack, glm_mod, type = "link")
+
+# define the threshold using the evaluation metrics estimated earlier
+glm_threshold <- threshold(glm_eval, stat = 'spec_sens')
+
+plot(glm_link > glm_threshold)
+
+```
 
 ![](images/session_3/7_glm_map.png)
 
-
-
+<br>
 
 </div>
-
 
 <br>
 
@@ -305,23 +490,82 @@ div.blue { background-color:#e6f0ff; border-radius: 5px; padding: 20px;}
 <div class = "blue">
 
 
+Non-linear models fit more complex relationships between occurrence and environmental data, and the model often fits the data better. 
+Here we will use a Generalised Additive Model (GAM) to build this SDM using the `mgcv` package. 
+
+
+```{r}
+## Build GAM model
+gam_mod <- gam(pa ~ s(bathymetry) + s(current_velocity) + s(mixed_layer_depth) + s(temperature),
+               data = training_data, family = binomial(link = "logit"))
+
+
+summary(gam_mod)
+
+
+```
+
+
+We can now use the `visreg` package to look at the response curves of this model:
+
+```{r, eval=FALSE}
+visreg(gam_mod, scale = "response", gg = TRUE)
+
+```
 
 ![](images/session_3/8_gam_visreg.png)
 
 
+We can also look at how two variables may interact with each other in the model:
+
+```{r, eval=FALSE}
+visreg2d(gam_mod, xvar = "bathymetry", yvar = "temperature", scale = "response", plot.type = "persp",
+         xlab = "Bathymetry (m)", ylab = "Sea Surface Temparature (˚C)", zlab = "Probability of presence",
+         theta = 145, phi = 15, zlim = c(0,1))
+
+```
+
+
 ![](images/session_3/9_gam_persp.png)
+
+We can now evaluate the model by quantifying false positive and true positive rates using the 'testing' dataset
+
+```{r, eval=FALSE}
+## using the evaluate() function in the `dismo` package
+gam_eval <- evaluate(p = test_presence, a = test_absence, model = gam_mod)
+
+plot(gam_eval, "ROC", type = "l")
+
+```
 
 
 ![](images/session_3/10_gam_auc.png)
 
+And finally we can use the model to predict the distribution using the 'predict()' function in the `terra` package:
 
+
+```{r, eval=FALSE}
+## We can predict and plot the model response (continuous value between 0 and 1)
+gam_predict <- terra::predict(env_stack, gam_mod, type = "response")
+
+plot(gam_predict)
+
+## We can now threshold the output to a map identifying the species distribution
+# we need to first predict the model 'link' function
+gam_link <- terra::predict(env_stack, gam_mod, type = "link")
+
+# define the threshold using the evaluation metrics estimated earlier
+gam_threshold <- threshold(gam_eval, stat = 'spec_sens')
+
+plot(gam_link > gam_threshold)
+
+```
 
 ![](images/session_3/11_gam_map.png)
 
-
+<br>
 
 </div>
-
 
 <br>
 
@@ -342,22 +586,85 @@ div.blue { background-color:#e6f0ff; border-radius: 5px; padding: 20px;}
 
 
 
+Classification models are another versatile way to define the relationship between occurrence and environmental predictors. These methods typically involve 
+training classifiers on labeled occurrence data (presence-absence or presence-background) and environmental predictor variables. Common classification algorithms 
+include Random Forest, Support Vector Machines (SVM), k-Nearest Neighbors (k-NN), and Gradient Boosting Machines (GBM). These algorithms learn patterns from 
+the training data and then classify new locations as suitable or unsuitable for the species based on the learned patterns and environmental characteristics. 
+Classification-based SDMs offer robustness, flexibility, and often higher predictive accuracy, making them valuable tools for ecological research, conservation 
+planning, and biodiversity management. Here we will use a Random Forest model to build this SDM using the `randomForest` package. 
+
+
+```{r}
+## Build Random Forest model
+rf_mod <- randomForest(pa ~ bathymetry + current_velocity + mixed_layer_depth + temperature,
+                       data = model_data, ntree = 1000, nodesize = 10, importance = T)
+
+
+rf_mod
+
+
+```
+
+
+We can now use the `visreg` package to look at the response curves of this model:
+
+```{r, eval=FALSE}
+visreg(rf_mod, gg = TRUE)
+
+```
+
 ![](images/session_3/12_rf_visreg.png)
+
+
+We can also look at how two variables may interact with each other in the model:
+
+```{r, eval=FALSE}
+visreg2d(rf_mod, xvar = "bathymetry", yvar = "temperature", plot.type = "persp",
+         xlab = "Bathymetry (m)", ylab = "Sea Surface Temparature (˚C)", zlab = "Probability of presence",
+         theta = 145, phi = 15)
+
+```
 
 
 ![](images/session_3/13_rf_persp.png)
 
+We can now evaluate the model by quantifying false positive and true positive rates using the 'testing' dataset
+
+```{r, eval=FALSE}
+## using the evaluate() function in the `dismo` package
+rf_eval <- evaluate(p = test_presence, a = test_absence, model = rf_mod, type = "prob")
+
+plot(rf_eval, "ROC", type = "l")
+
+```
+
+
 
 ![](images/session_3/14_rf_auc.png)
 
+And finally we can use the model to predict the distribution using the 'predict()' function in the `terra` package:
+
+
+```{r, eval=FALSE}
+## We can predict and plot the model probability (continuous value between 0 and 1)
+rf_predict <- terra::predict(env_stack, rf_mod, type = "prob")
+
+plot(rf_predict[[2]])
+
+## We can now threshold the output to a map identifying the species distribution
+# for randomForest models we model the 'response' to get the thresholded output
+rf_link <- terra::predict(env_stack, rf_mod, type = "response")
+
+plot(rf_link)
+
+```
 
 
 ![](images/session_3/15_rf_map.png)
 
-
+<br>
 
 </div>
-
 
 <br>
 
@@ -376,20 +683,88 @@ div.blue { background-color:#e6f0ff; border-radius: 5px; padding: 20px;}
 </style>
 <div class = "blue">
 
+The 'MaxEnt' method, short for Maximum Entropy Modeling, is a popular technique for Species Distribution Models (SDMs) widely used due to its effectiveness 
+in predicting species distributions using presence-only data. MaxEnt models estimate the probability distribution of species occurrences by maximising entropy
+subject to constraints derived from environmental predictor variables. This approach allows MaxEnt to capture complex relationships between species occurrences
+and environmental conditions while making minimal assumptions about the underlying ecological processes. By leveraging environmental data, MaxEnt produces 
+spatially explicit predictions of species distributions, providing valuable insights for conservation planning, habitat suitability assessment, and understanding
+species-environment relationships.
+
+Here we will use MaxEnt to build this SDM using the `dismo` package. This model requires the data in a slightly different format. 
+
+
+```{r, message=FALSE, warning=FALSE}
+## Setup the input data to enable the maxent() function in `dismo`
+presence_data <- 
+  training_data %>% 
+  filter(pa %in% 1) %>% 
+  st_as_sf(coords = c("lon", "lat"), crs = 4326) %>% 
+  as_Spatial()
+
+absence_data <- 
+  training_data %>% 
+  filter(pa %in% 0) %>% 
+  st_as_sf(coords = c("lon", "lat"), crs = 4326) %>% 
+  as_Spatial()
+
+predictors <- raster::stack(env_stack)
+
+## Build the MaxEnt model
+maxent_mod <- maxent(x = predictors, p = presence_data, a = absence_data)
+
+maxent_mod
+
+```
+
+
+We can now use the `dismo` packages 'response()' function to look at the response curves of this model:
+
+```{r, eval=FALSE}
+response(maxent_mod)
+
+```
+
 
 ![](images/session_3/16_maxent_visreg.png)
 
 
+We can now evaluate the model by quantifying false positive and true positive rates using the 'testing' dataset, and identify which variables
+contribute to the model most significantly
+
+```{r, eval=FALSE}
+## using the evaluate() function in the `dismo` package
+maxent_eval <- evaluate(p = test_presence, a = test_absence, model = maxent_mod)
+
+plot(maxent_eval, "ROC", type = "l")
+plot(maxent_mod)
+
+```
+
+
 ![](images/session_3/17_maxent_auc.png)
 
+And finally we can use the model to predict the distribution using the 'predict()' function in the `terra` package:
+
+
+```{r, eval=FALSE}
+## We can predict and plot the model probability (continuous value between 0 and 1)
+maxent_pred <- terra::predict(maxent_mod, env_stack)
+
+plot(maxent_pred)
+
+## We can now threshold the output to a map identifying the species distribution
+# define the threshold using the evaluation metrics estimated earlier
+maxent_threshold <- threshold(maxent_eval, stat = 'spec_sens')
+
+plot(maxent_pred > maxent_threshold)
+
+```
 
 ![](images/session_3/18_max_map.png)
 
-
-
+<br>
 
 </div>
-
 
 <br>
 

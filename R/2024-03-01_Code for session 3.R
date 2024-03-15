@@ -469,7 +469,7 @@ plot(maxent_mod)
 
 max_threshold <- threshold(max_eval, stat = 'spec_sens')
 
-max_pred <- predict(maxent_mod, env_stack)
+max_pred <- terra::predict(maxent_mod, env_stack)
 max_tmap <- max_pred > max_threshold
 values(max_tmap)[values(max_tmap) < 1] <- NA
 
