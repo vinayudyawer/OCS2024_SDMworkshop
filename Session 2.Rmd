@@ -29,6 +29,8 @@ library(aniMotum)
 
 raw_data <- read_csv('https://raw.githubusercontent.com/vinayudyawer/OCS2024_SDMworkshop/main/data/Whaleshark.csv')
 
+raw_data <- read_csv("~/Desktop/Whaleshark.csv") 
+
 head(raw_data)
 
 ```
@@ -252,21 +254,21 @@ color_palette <- colorRampPalette(hcl.colors(10, palette = "Reds 3"))
 m_130 <-
   mapview(pred_path %>% filter(id %in% "M-130"), alpha = 1, color = "white", homebutton = F, 
           legend = F, map.type = c("Esri.WorldImagery"), layer.name = "M-130") +
-  mapview(pred_data %>% filter(id %in% "M-130"), alpha.regions = 1, alpha = 0, zcol = "g",
+  mapview(pred_sf %>% filter(id %in% "M-130"), alpha.regions = 1, alpha = 0, zcol = "g",
           homebutton = F, legend = F, cex = 3, layer.name = "M-130", col.regions = color_palette(93)) +
-  mapview(pred_data %>% filter(id %in% "M-130") %>% slice(1), alpha.regions = 1, alpha = 0,
+  mapview(pred_sf %>% filter(id %in% "M-130") %>% slice(1), alpha.regions = 1, alpha = 0,
           col.regions = "darkgreen", homebutton = F, legend = F, layer.name = "M-130") +
-  mapview(pred_data %>% filter(id %in% "M-130") %>% slice(n()), alpha.regions = 1, alpha = 0,
+  mapview(pred_sf %>% filter(id %in% "M-130") %>% slice(n()), alpha.regions = 1, alpha = 0,
           col.regions = "firebrick", homebutton = F, legend = F, layer.name = "M-130")
 
 m_150 <-
   mapview(pred_path %>% filter(id %in% "M-150"), alpha = 1, color = "white", homebutton = F, 
           legend = F, map.type = c("Esri.WorldImagery"), layer.name = "M-150") +
-  mapview(pred_data %>% filter(id %in% "M-150"), alpha.regions = 1, alpha = 0, zcol = "g",
+  mapview(pred_sf %>% filter(id %in% "M-150"), alpha.regions = 1, alpha = 0, zcol = "g",
           homebutton = F, legend = F, cex = 3, layer.name = "M-150", col.regions = color_palette(54)) +
-  mapview(pred_data %>% filter(id %in% "M-150") %>% slice(1), alpha.regions = 1, alpha = 0,
+  mapview(pred_sf %>% filter(id %in% "M-150") %>% slice(1), alpha.regions = 1, alpha = 0,
           col.regions = "darkgreen", homebutton = F, legend = F, layer.name = "M-150") +
-  mapview(pred_data %>% filter(id %in% "M-150") %>% slice(n()), alpha.regions = 1, alpha = 0,
+  mapview(pred_sf %>% filter(id %in% "M-150") %>% slice(n()), alpha.regions = 1, alpha = 0,
           col.regions = "firebrick", homebutton = F, legend = F, layer.name = "M-150")
 
 mm <- 
@@ -284,7 +286,7 @@ mm
 
 
 # Simulate & or re-route tracks
-The aniMotum package also allows users to use your fitted model to simulate similar tracks, which is useful if you want to compare your animal's track with other 'null' models. This allows for further hypothesis testing and analyses like resource selection functions. Here, we will use the 
+The `aniMotum` package also allows users to use your fitted model to simulate similar tracks, which is useful if you want to compare your animal's track with other 'null' models. This allows for further hypothesis testing and analyses like resource selection functions. Here, we will use the 
 
 ```{r}
 
