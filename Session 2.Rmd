@@ -29,8 +29,6 @@ library(aniMotum)
 
 raw_data <- read_csv('https://raw.githubusercontent.com/vinayudyawer/OCS2024_SDMworkshop/main/data/Whaleshark.csv')
 
-raw_data <- read_csv("~/Desktop/Whaleshark.csv") 
-
 head(raw_data)
 
 ```
@@ -92,7 +90,7 @@ You can explore the specifics of this package from the vignette [here](https://i
 
 For our data, we will use the Continuous-time move persistence model (‘mp’ option in the code). We can run this model by simply using the `fit_ssm()` function in aniMotum. The function requires some basic information on the dispersal ability of our study species. At the least, it asks for our estimate of swimming speed of our animal. Whale sharks are pretty slow swimming sharks and their average speed has been measured to be about 1.5 m/s. We can also use this function to predict positions at fixed time periods. Here lets predict two positions for each day of the tracking period (a position every 12 hours).
 
-```{r}
+```{r, eval=FALSE}
 # Fitting a Continuous-time move persistence (MP) model to our data 
 
 fit <-
@@ -101,13 +99,13 @@ fit <-
           model = "mp", ## Move persistence model
           time.step = 12) ## predict positions every 12 hours
 
-head(fit)
+summary(fit)
 
 ```
 
 So if we take a look at the fit object, we can see that actually the model converged for all but two of our sharks (M-150 and M-156). From the model run, we also found models were having issues evaluating standard errors. This can be due to a pre-filter step `fit_ssm()` conducts. Models can often also not converge as our predicted time-steps are too close, and thus overfitting a model. Lets modify our code to try and get more of our animals to converge. So lets now run another model, but this time lets use a larger time-step of 48 hours and turn off the pre-filter step (using the 'spdf' parameter). 
 
-```{r}
+```{r, eval=FALSE}
 
 fit2 <-
   fit_ssm(x = tagdat, 
@@ -116,19 +114,21 @@ fit2 <-
           time.step = 48, ## predict positions every 24 hours
           spdf = FALSE) ## turn off the pre-filter step
 
-head(fit2)
+summary(fit2)
 
 ```
 
 This is a lot better! When predicting on a 48 hour time step with the pre-filter turned off, the models converged for all sharks. Let's focus on two shark as an example, lets use M-150 and M-130. 
 
-```{r}
+```{r, eval=FALSE}
 fit3 <- tagdat %>%
   dplyr::filter(id %in% c("M-150", "M-130")) %>%
   fit_ssm(vmax = 1.5, ## maximum speed of whale sharks (in m/s)
           model = "mp", ## Move persistence model
           time.step = 48, ## predict positions every 24 hours
           spdf = FALSE) ## turn off the pre-filter step
+
+summary(fit3)
 
 ```
 
@@ -285,14 +285,59 @@ mm
 
 
 
-# Simulate & or re-route tracks
-The `aniMotum` package also allows users to use your fitted model to simulate similar tracks, which is useful if you want to compare your animal's track with other 'null' models. This allows for further hypothesis testing and analyses like resource selection functions. Here, we will use the 
+# Simulate tracks
+The `aniMotum` package also allows users to use your fitted model to simulate similar tracks, which is useful if you want to compare your animal's track with other 'null' models. This allows for further hypothesis testing and analyses like resource selection functions. Here, we will use the `sim()` function to simulate 'null' tracks for all our animals. Lets start with the raw data again to build our state-space model and 
+
 
 ```{r}
+whaleshark_fit <-
+  fit_ssm(x = tagdat, 
+          vmax = 1.5, ## maximum speed of whale sharks (in m/s)
+          model = "crw", ## Move persistence model
+          time.step = 24, ## predict positions every 24 hours
+          spdf = FALSE) ## turn off the pre-filter step
 
+  
+null_fit <- 
+  sim_fit(whaleshark_fit, 
+          what = "predicted", 
+          reps = 20)
+
+plot(null_fit, ncol = 2, scales = "free")
+
+```
+
+Now if you have a look at the simulated tracks, it looks like the simulations go onto land, which isn't all that accurate for Whalesharks. The `aniMotum` package has a way to take this into account. The simulation function can take into account land masses to constrain the tracks from going onto land. We need to run a few extra steps first
+
+
+```{r, eval=FALSE}
+
+## load a rasterised file that provides information on the gradient of landmasses
+load(system.file("extdata/grad.rda", package = "aniMotum"))
+grad <- terra::unwrap(grad)
+
+null_fit2 <- 
+  sim_fit(whaleshark_fit, 
+          what = "predicted", 
+          reps = 20, 
+          grad = grad, 
+          beta = c(-300,-300))
 
 ```
 
 
-# add pseudo absenses (which we will need for sdm)
+<br>
+
+------------------------------------------------------------------------------------------------------------------------------------------------------
+
+<a href="#top" style="color:steelblue; font:bold;" >Back to top</a>
+
+<br><br>
+
+
+
+
+
+
+
 

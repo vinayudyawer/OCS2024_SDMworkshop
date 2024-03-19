@@ -629,3 +629,20 @@ We can then use the mapshot() function in the mapview package to save our intera
 mapview::mapshot(map2, url = "Whaleshark_interactive_map.html", remove_controls = NULL, selfcontained = TRUE)
 ```
 
+
+<br>
+
+------------------------------------------------------------------------------------------------------------------------------------------------------
+
+<a href="#top" style="color:steelblue; font:bold;" >Back to top</a>
+
+<br><br>
+
+
+
+
+
+
+
+
+
