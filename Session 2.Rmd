@@ -27,7 +27,7 @@ The second session will introduce participants to the aniMotum package, a valuab
 library(tidyverse)
 library(aniMotum)
 
-raw_data <- read_csv('https://raw.githubusercontent.com/vinayudyawer/OCS2024_SDMworkshop/main/Data/Whalesharks_Maldives.csv')
+raw_data <- read_csv('https://raw.githubusercontent.com/vinayudyawer/OCS2024_SDMworkshop/main/data/Whaleshark.csv')
 
 head(raw_data)
 
@@ -74,19 +74,21 @@ It looks like a large proportion of our data have low accuracy position estimate
 
 # Step 2: Choose and fit a movement model 
 
-Lets try and retain as much data as we can and move onto the second step; choosing and fitting a movement model. This step allows us to model the data we have, and gives us the ability to then predict positions along the animals movement path to produce positions at fixed time periods. This becomes important when we want to calculate metrics of movements to help define movement behaviours. There are three main movement processes that aniMotum provides:
+Lets try and retain as much data as we can and move onto the second step; choosing and fitting a movement model. This step allows us to model the data we have, and gives us the ability to then predict positions along the animals movement path to produce positions at fixed time periods. This becomes important when we want to calculate metrics of movements to help define movement behaviours. There are three main movement processes that `aniMotum` provides:
 
-Random Walk (RW) models - where movements between positions are modeled to be random in direction and magnitude.
+ 
+- ***Random Walk (RW) models*** - where movements between positions are modeled to be random in direction and magnitude.
 
-Correlated Random Walk (CRW) model - where movements between positions are modeled as random and correlated in direction and magnitude.
+- ***Correlated Random Walk (CRW) model*** - where movements between positions are modeled as random and correlated in direction and magnitude.
 
-Continuous-time Move Persistence (MP) model - where movements between positions are modeled as random with correlations in direction and magnitude that vary in time.
+- ***Continuous-time Move Persistence (MP) model*** - where movements between positions are modeled as random with correlations in direction and magnitude that vary in time.
 
-"The MP approach is most appropriate for fitting to irregularly timed and error-prone Argos data as both aspects are taken into account explicitly". (Johnson 2023)
+*"The MP approach is most appropriate for fitting to irregularly timed and error-prone Argos data as both aspects are taken into account explicitly".* (Johnson 2023)
 
-You can explore the specifics of this package from the vignette here.
 
-For our data, we will use the Continuous-time move persistence model (‘mp’ option in the code). We can run this model by simply using the fit_ssm() function in aniMotum. The function requires some basic information on the dispersal ability of our study species. At the least, it asks for our estimate of swimming speed of our animal. Whale sharks are pretty slow swimming sharks and their average speed has been measured to be about 1.5 m/s. We can also use this function to predict positions at fixed time periods. Here lets predict a position for each day of the tracking period.
+You can explore the specifics of this package from the vignette [here](https://ianjonsen.github.io/aniMotum/articles/Overview.html).
+
+For our data, we will use the Continuous-time move persistence model (‘mp’ option in the code). We can run this model by simply using the `fit_ssm()` function in aniMotum. The function requires some basic information on the dispersal ability of our study species. At the least, it asks for our estimate of swimming speed of our animal. Whale sharks are pretty slow swimming sharks and their average speed has been measured to be about 1.5 m/s. We can also use this function to predict positions at fixed time periods. Here lets predict two positions for each day of the tracking period (a position every 12 hours).
 
 ```{r}
 # Fitting a Continuous-time move persistence (MP) model to our data 
@@ -95,28 +97,30 @@ fit <-
   fit_ssm(x = tagdat, 
           vmax = 1.5, ## maximum speed of whale sharks (in m/s)
           model = "mp", ## Move persistence model
-          time.step = 24) ## predict positions every 24 hours
+          time.step = 12) ## predict positions every 12 hours
 
 head(fit)
+
 ```
 
-So if we take a look at the fit object, we can see that actually the model only converged for one of our sharks - M 150. That makes sense, as we know from session one we have the most data for M 150. We don't have enough data for the other sharks for the models to converge. So lets now run another model, but this time lets use a time step of 48 hours. 
+So if we take a look at the fit object, we can see that actually the model converged for all but two of our sharks (M-150 and M-156). From the model run, we also found models were having issues evaluating standard errors. This can be due to a pre-filter step `fit_ssm()` conducts. Models can often also not converge as our predicted time-steps are too close, and thus overfitting a model. Lets modify our code to try and get more of our animals to converge. So lets now run another model, but this time lets use a larger time-step of 48 hours and turn off the pre-filter step (using the 'spdf' parameter). 
 
 ```{r}
 fit2 <-
   fit_ssm(x = tagdat, 
           vmax = 1.5, ## maximum speed of whale sharks (in m/s)
           model = "mp", ## Move persistence model
-          time.step = 48) ## predict positions every 48 hours
+          time.step = 48, ## predict positions every 24 hours
+          spdf = FALSE) ## turn off the pre-filter step
 
 head(fit2)
 ```
 
-This is a bit better! When predicting on a 48 hour time step, the models converged for M 130, M 150, and M 156. Let's focus on these three sharks. 
+This is a bit better! When predicting on a 48 hour time step with the pre-filter turned off, the models converged for all but M-156. Let's focus on the remaining five sharks. 
 
 ```{r}
 fit3 <- tagdat %>%
-  dplyr::filter(id %in% c("M-130", "M-150")) %>%
+  dplyr::filter(id %in% c("M-130", "M-150", "M-149")) %>%
   fit_ssm(vmax = 1.5, ## maximum speed of whale sharks (in m/s)
           model = "mp", ## Move persistence model
           time.step = 48) ## predict positions every 48 hours
