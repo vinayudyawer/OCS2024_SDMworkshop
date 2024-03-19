@@ -23,7 +23,7 @@ This session will address the fundamentals of data pre-processing and visualisat
 
 # Reading the data
 
-Before we can analyze these data, we first need to read the dataset into R. The 'comma deperated value' (.csv) format is a popular and effective way to export large data sets. This format is a preferred way to store your data, and easily import into R. 
+Before we can analyze these data, we first need to read the dataset into R. The 'comma separated value' (.csv) format is a popular and effective way to export large data sets. This format is a preferred way to store your data, and easily import into R. 
 
 In this session, we will explore how to import a .csv file using base R and using tidyverse. 
 
@@ -36,7 +36,7 @@ A .csv file can be imported into R using the read.csv base function, and by tell
 # whaleshark <- read.csv('/location of data/Whalesharks_Maldives.csv', header = TRUE)
 
 # Load the whale shark data using the 'read.csv' function directly from github 
-whaleshark <- read.csv('https://raw.githubusercontent.com/vinayudyawer/OCS2024_SDMworkshop/main/Data/Whalesharks_Maldives.csv', header = TRUE)
+whaleshark <- read.csv('https://raw.githubusercontent.com/vinayudyawer/OCS2024_SDMworkshop/main/data/Whaleshark.csv', header = TRUE)
 ```
 
 Now, let's do a quick exploration of the data using base R to get familiar with it. 
@@ -51,7 +51,7 @@ class(whaleshark$LONGITUDE) # numeric
 class(whaleshark$LATITUDE) # numeric
 class(whaleshark$ARGOSCLASS) # character
 ```
-So far everything is looking good! But you'll notice that our 'DATE' field has been read in as a 'character'. This is fine for now, but in order to do more complex visualizations of the data, we will need R to recognize the 'DATE' field as a 'date time object'. Luckily, there is an AMAZING package in R that will easily do this for us! 
+So far everything is looking good! But you'll notice that our 'DATE' field has been read in as a 'character'. This is fine for now, but in order to do more complex visualizations of the data, we will need R to recognize the 'DATE' field as a 'date-time object'. Luckily, there is an AMAZING package in R that will easily do this for us! 
 
 Lubridate package 
 ```{r}
@@ -70,13 +70,13 @@ class(whaleshark$DATE)
 ```
 
 
-The lubridate package is AMAZING. Aside from changing date/time formats easily, you can also convert between various time zones. In this case, it's not super important for our animal tracking data to be in a specific time zone, but you may run into a scenario where your data was collected in UTC, but you need it in a local time. 
+The `lubridate` package is AMAZING. Aside from changing date/time formats easily, you can also convert between various time zones. In this case, it's not super important for our animal tracking data to be in a specific time zone, but you may run into a scenario where your data was collected in UTC, but you need it in a local time. 
 
 This may be especially relevant later on when creating species distribution models' when correlating the time an animal was present with environmental factors.
 
 ```{r}
-# Lets practice by creating a new field with the time zone as AEST. 
-whaleshark$LOCAL_DATE_TIME <- with_tz(whaleshark$DATE, tzone = "Australia/Brisbane")
+# Lets practice by creating a new field with the time zone as the local time (Indian Ocean/Maldives UTC +5:00). 
+whaleshark$LOCAL_DATE_TIME <- with_tz(whaleshark$DATE, tzone = "Indian/Maldives")
 
 # You may also be looking at a larger temporal resolution and want to separate the 'date' from the 'time' field, we can also use the 'date' and 'time' functions in lubridate to do this!
 
@@ -88,7 +88,7 @@ whaleshark$time <- format(whaleshark$DATE, "%H:%M:%S") # create a new column wit
 
 # Tidyverse package 
 
-Alternatively, we can use the tidyverse package to do everything we just did above in base R. There are many reasons why various coders prefer tidyverse or base R. But However, the ease of data manipulation in tidyverse makes it extremely helpful in handling data. 
+Alternatively, we can use the tidyverse package to do everything we just did above in base R. There are many reasons why various coders prefer tidyverse or base R. However, the ease of data manipulation in tidyverse makes it extremely helpful in handling data. 
 
 First lets load up tidyverse. 
 ```{r}
@@ -102,7 +102,7 @@ Now lets see an example of it's usefulness. Above, we loaded the data using base
 # whaleshark <- read_csv('/location of data/Whalesharks_Maldives.csv')
 
 # You can also use read_csv to input data directly from a website URL
-whaleshark <- read_csv('https://raw.githubusercontent.com/vinayudyawer/OCS2024_SDMworkshop/main/Data/Whalesharks_Maldives.csv')
+whaleshark <- read_csv('https://raw.githubusercontent.com/vinayudyawer/OCS2024_SDMworkshop/main/data/Whaleshark.csv')
 
 # Note, right now we are reading over our previous 'whaleshark' data frame. So any manipulations you've done to the data frame will be reset. 
 ```
@@ -177,7 +177,7 @@ whaleshark %>% # take the whale shark df
 ```
 
 
-# Dplyr package: using dyplr for data wrangling
+# `dplyr` package: using dplyr for data wrangling
 
 * dplyr is the data wrangling workhorse of the tidyverse.
 * Provides functions, verbs, that can manipulate data into the shape you need for analysis.
@@ -356,7 +356,7 @@ One of the tricky aspects of pulling spatial data into your analytic workflow is
 
 This movement is facilitated by sf, an important base package for spatial operations in R. It provides definitions for basic spatial classes (points, lines, polygons, pixels, and grids) in an attempt to unify the way R packages represent and manage these sorts of data, and uses grammer that can be integrated into tidyverse script. It also includes some core functions for creating and manipulating these data structures. The hope is that all spatial R packages will use (or at least provide conversions to) the ‘Spatial’ data class and its derivatives, as now defined in the sf package.
 
-[Here](https://r-spatial.github.io/sf/) is a very useful style guide for coding using the sf package. 
+[Here](https://r-spatial.github.io/sf/) is a very useful style guide for coding using the `sf` package. 
 
 
 **Coordinate Reference Systems (CRS)**
@@ -372,7 +372,7 @@ In the next step, we will convert our whaleshark dataset (whaleshark) into a spa
 For simplicity, each projection can be referred to by a unique ID from the **European Petroleum Survey Group (EPSG)** geodetic parameter dataset. You can find the relevant EPSG code for your coordinate system from this [website](https://epsg.io/). There, simply enter in a key word in the search box and select from the list the correct coordinate system. There is a map image in the top right of the site to help you.
 
 The sf package: 
-The sf package makes it easy to convert any data frame into a spatial object which we can then plot and explore using other packages. The conversion from data frame to a spatial object can be done easily using the st_as_sf() function. Lets convert two data sets into spatial objects so we can plot them out. The main information we need to provide to convert it to a spatial object will be the names of the columns that denote the coordinates, and the CRS for the data. Our whaleshark data were recorded in the WGA 84 geographic datum in decimal degrees, which is the equivalent EPSG code of [4326](https://epsg.io/4326)
+The sf package makes it easy to convert any data frame into a spatial object which we can then plot and explore using other packages. The conversion from data frame to a spatial object can be done easily using the `st_as_sf()` function. Lets convert two data sets into spatial objects so we can plot them out. The main information we need to provide to convert it to a spatial object will be the names of the columns that denote the coordinates, and the CRS for the data. Our whaleshark data were recorded in the WGA 84 geographic datum in decimal degrees, which is the equivalent EPSG code of [4326](https://epsg.io/4326)
 
 First lets load the sf package 
 ```{r}
@@ -381,7 +381,8 @@ library(sf)
 
 # st_as_sf() 
 
-Next we can convert out whale shark data frame into a 'simple feature' (aka a spatial object) using the st_as_sf() function in the sf package 
+Next we can convert out whale shark data frame into a 'simple feature' (aka a spatial object) using the `st_as_sf()` function in the `sf` package 
+
 ```{r}
 
 whaleshark_sf <-
@@ -397,14 +398,16 @@ head(whaleshark_sf)
 
 # Plotting a spatial object using ggplot2
 
-We can make a simple plot to visualize the points spatially using the ggplot2 package, specifically the geom_sf() function 
+We can make a simple plot to visualize the points spatially using the `ggplot2` package, specifically the `geom_sf()` function 
+
 ```{r}
 ggplot(whaleshark_sf, aes(color = ANIMALID)) + 
   geom_sf() 
 ```
-Amazing! It worked! We can see that shark M-150 has the most detections, and also has the largest spatial range of detections. The data is looking MESSY though. It would be helpful to connect the POINTS with LINES, because then we can visualise each animal's path! 
+Amazing! It worked! We can see that sharks M-149 and M-150 have the most detections, and also have the largest spatial range of detections. The data is looking MESSY though. It would be helpful to connect the POINTS with LINES, because then we can visualise each animal's path! 
 
-To do this, we need to create a LINES sf object using the st_cast() function 
+To do this, we need to create a LINES sf object using the `st_cast()` function 
+
 ```{r}
 whaleshark_path <- 
   whaleshark_sf %>%
@@ -431,7 +434,8 @@ There are a range of basemaps available to users through various providers like 
 However, some of these providers (such as Google and Mapbox) require users to register and purchase a map token to allow access. 
 
 
-Let's focus in on the shark we have the most data for, M-150, and plot detections over a basic basemap using the OpenStreetMap provider. We do this by using the annotation_map_tile() function, followed by adding the spatial layer using layer_spatial() 
+Let's focus in on the shark we have the most data for, M-150, and plot detections over a basic basemap using the OpenStreetMap provider. We do this by using the `annotation_map_tile()` function, followed by adding the spatial layer using `layer_spatial()` 
+
 ```{r}
 library(ggspatial)
 
@@ -465,6 +469,7 @@ Cartolight is a grey marine basemap with societal land features such as city nam
 Non-standard basemaps
 
 1. ESRI Satellite imagery 
+
 ```{r}
 
 esri_sat <- paste0('https://services.arcgisonline.com/arcgis/rest/services/',
@@ -490,7 +495,7 @@ ggplot() +
 
 ```
 
-Just like in gglot2 you can now add more layers to the map, and control the aesthetics of the layers in the same way. Lets add other features in the map like a scale bar using the annotation_scale() function. 
+Just like in gglot2 you can now add more layers to the map, and control the aesthetics of the layers in the same way. Lets add other features in the map like a scale bar using the `annotation_scale()` function. 
 
 ```{r}
 ggplot() +
@@ -515,8 +520,9 @@ The gganimate package works to animate your ggplot2 creations, which is an espec
 
 More information on the gganimate package can be found [here](https://gganimate.com/). 
 
-Load up the gganimate() package
-```{r}
+Load up the `gganimate()` package
+
+```{r, message=FALSE}
 library(gganimate)
 
 ```
@@ -525,15 +531,30 @@ Lets try to animate our path for whaleshark M-150 using the transition_time() fu
 
 *So since M150 Path just being one object, does that mean you can't animate it along with the points?*
 
-```{r}
+```{r, eval=FALSE}
 ggplot() +
   annotation_map_tile(type = esri_sat, zoom = 8) +
   layer_spatial(data = M150_sf, color = 'white')  +
-  layer_spatial(data = M150_path, color = 'white') + 
+  layer_spatial(data = M150_path, color = 'red') + 
+  annotation_scale(text_col = "white") +
   transition_time(DATETIME) 
 
 ```
 
+We can solve this by providing `gganimate` with the point dataset, and use the *transition_reveal function instead!
+
+```{r, eval=FALSE}
+ggplot() +
+  annotation_map_tile(type = esri_sat) +
+  geom_spatial_path(data = M150_sf, aes(x = LONGITUDE, y = LATITUDE), crs = 4326, color = 'white')  +
+  geom_spatial_point(data = M150_sf, aes(x = LONGITUDE, y = LATITUDE), crs = 4326, color = 'red') +
+  annotation_scale(text_col = "white") +
+  labs(x = NULL, y = NULL) +
+  transition_reveal(DATETIME)
+
+```
+
+<br>
 
 # Mapview package 
 
