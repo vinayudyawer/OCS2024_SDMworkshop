@@ -533,7 +533,7 @@ Lets try to animate our path for whaleshark M-150 using the transition_time() fu
 
 ```{r, eval=FALSE}
 ggplot() +
-  annotation_map_tile(type = esri_sat, zoom = 8) +
+  annotation_map_tile(type = esri_sat) +
   layer_spatial(data = M150_sf, color = 'white')  +
   layer_spatial(data = M150_path, color = 'red') + 
   annotation_scale(text_col = "white") +

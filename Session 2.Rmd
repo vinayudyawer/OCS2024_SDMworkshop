@@ -28,7 +28,7 @@ library(tidyverse)
 library(aniMotum)
 
 raw_data <- read_csv('https://raw.githubusercontent.com/vinayudyawer/OCS2024_SDMworkshop/main/data/Whaleshark.csv')
-raw_data <- read_csv("~/Desktop/Whaleshark.csv")
+
 head(raw_data)
 
 ```
@@ -93,11 +93,6 @@ For our data, we will use the Continuous-time move persistence model (‘mp’ o
 ```{r}
 # Fitting a Continuous-time move persistence (MP) model to our data 
 
-tagdat %>% 
-  filter(id %in% "M-129") %>% 
-  st_as_sf(coords = c("lon", "lat"), crs = 4326) %>% 
-  mapview()
-
 fit <-
   fit_ssm(x = tagdat, 
           vmax = 1.5, ## maximum speed of whale sharks (in m/s)
@@ -111,6 +106,7 @@ head(fit)
 So if we take a look at the fit object, we can see that actually the model converged for all but two of our sharks (M-150 and M-156). From the model run, we also found models were having issues evaluating standard errors. This can be due to a pre-filter step `fit_ssm()` conducts. Models can often also not converge as our predicted time-steps are too close, and thus overfitting a model. Lets modify our code to try and get more of our animals to converge. So lets now run another model, but this time lets use a larger time-step of 48 hours and turn off the pre-filter step (using the 'spdf' parameter). 
 
 ```{r}
+
 fit2 <-
   fit_ssm(x = tagdat, 
           vmax = 1.5, ## maximum speed of whale sharks (in m/s)
@@ -143,7 +139,7 @@ plot(fit3,
      what = "fitted", ## what component of the model to plot ('fitted', 'predicted' or 'rerouted')
      type = 2, ## type of plot to make
      pages = 1, 
-     ncol = 3)
+     ncol = 2)
 ```
 In the above plots, the blue are the original positions, the yellow are where the model has 'corrected' positions, and the black 'x's are outliers identified by the model. 
 
@@ -170,7 +166,7 @@ plot(fit3,
      what = "predicted", 
      type = 2,
      pages = 1,
-     ncol = 3)
+     ncol = 2)
 
 ```
 
@@ -186,14 +182,14 @@ plot(fit3,
      what = "predicted",
      type = 3,
      pages = 1,
-     ncol = 3,
+     ncol = 2,
      normalise = TRUE)
 
 plot(fit3,
      what = "predicted",
      type = 4,
      pages = 1,
-     ncol = 3,
+     ncol = 2,
      normalise = TRUE)
 
 ```
@@ -206,14 +202,19 @@ We can use the grab() function to extract specific components of the model outpu
 # Lets plot our own version of the predicted component using mapview
 pred_data <- grab(fit3,
                   what = "predicted",
-                  as_sf = TRUE,
                   normalise = TRUE)
 
-# Lets convert the point dataset into a path using the 'sf' package
+# Lets convert this data frame into a point dataset using `sf`
 library(sf)
 
+pred_sf <-
+  pred_data %>% 
+  st_as_sf(coords = c("lon", "lat"), crs = 4326, remove = F)
+
+# Lets convert the point dataset into a path
+
 pred_path <- 
-  pred_data %>%
+  pred_sf %>%
   group_by(id) %>%
   summarise(do_union = FALSE) %>%
   st_cast("LINESTRING")
@@ -230,11 +231,12 @@ library(gganimate)
 esri_sat <- paste0('https://services.arcgisonline.com/arcgis/rest/services/',
                    'World_Imagery/MapServer/tile/${z}/${y}/${x}.jpeg')
 ggplot() +
-  annotation_map_tile(type = esri_sat, zoom = 8) +
-  geom_spatial_point(data = pred_data, aes(x = lon, y = lat, color = id), crs = 4326) +
-  geom_spatial_path(data = pred_data, aes(x = lon, y = lat, color = id), crs = 4326) + 
-  labs(title = 'Date: {date}', x = 'Longitude', y = 'Latitude') +
-  transition_time(date)
+  annotation_map_tile(type = esri_sat) +
+  geom_spatial_path(data = pred_data, aes(x = lon, y = lat, group = id), col = "white", crs = 4326) + 
+  geom_spatial_point(data = pred_data, aes(x = lon, y = lat, group = id, col = id), crs = 4326) +
+  labs(title = 'Date: {as.Date(pred_data$date)[frame]}', x = 'Longitude', y = 'Latitude') +
+  annotation_scale(text_col = "white") +
+  transition_reveal(date)
 
 ```
 
