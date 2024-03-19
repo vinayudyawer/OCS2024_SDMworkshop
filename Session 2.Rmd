@@ -28,7 +28,7 @@ library(tidyverse)
 library(aniMotum)
 
 raw_data <- read_csv('https://raw.githubusercontent.com/vinayudyawer/OCS2024_SDMworkshop/main/data/Whaleshark.csv')
-
+raw_data <- read_csv("~/Desktop/Whaleshark.csv")
 head(raw_data)
 
 ```
@@ -93,6 +93,11 @@ For our data, we will use the Continuous-time move persistence model (‘mp’ o
 ```{r}
 # Fitting a Continuous-time move persistence (MP) model to our data 
 
+tagdat %>% 
+  filter(id %in% "M-129") %>% 
+  st_as_sf(coords = c("lon", "lat"), crs = 4326) %>% 
+  mapview()
+
 fit <-
   fit_ssm(x = tagdat, 
           vmax = 1.5, ## maximum speed of whale sharks (in m/s)
@@ -114,16 +119,18 @@ fit2 <-
           spdf = FALSE) ## turn off the pre-filter step
 
 head(fit2)
+
 ```
 
-This is a bit better! When predicting on a 48 hour time step with the pre-filter turned off, the models converged for all but M-156. Let's focus on the remaining five sharks. 
+This is a lot better! When predicting on a 48 hour time step with the pre-filter turned off, the models converged for all sharks. Let's focus on two shark as an example, lets use M-150 and M-130. 
 
 ```{r}
 fit3 <- tagdat %>%
-  dplyr::filter(id %in% c("M-130", "M-150", "M-149")) %>%
+  dplyr::filter(id %in% c("M-150", "M-130")) %>%
   fit_ssm(vmax = 1.5, ## maximum speed of whale sharks (in m/s)
           model = "mp", ## Move persistence model
-          time.step = 48) ## predict positions every 48 hours
+          time.step = 48, ## predict positions every 24 hours
+          spdf = FALSE) ## turn off the pre-filter step
 
 ```
 
