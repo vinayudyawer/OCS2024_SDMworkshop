@@ -70,7 +70,7 @@ htmltools::img(src =knitr::image_uri('images/session_0/workshop_banner.png'),
 
 <br>
 
-**Mina** is...
+**Mina** is a Research Associate in the Fish and Fisheries Lab at James Cook University. She first became interested in using R as a tool to wrangle large datasets to assess risks posed by climate change to both animal populations and the livelihoods of human communities reliant upon them. She has worked as a teaching assistant at JCU, creating R boot camps and leading weekly workshops for students learning to model using **R**. 
 
 **Vinay** is a Spatial Ecologist at the [Charles Darwin Foundation](https://www.darwinfoundation.org/en/). He is an ecologist that is particularly
 interested in using spatio-temporal datasets to understand animal movements and distributions patterns. He has considerable experience using **R** to
@@ -84,7 +84,7 @@ page](https://github.com/vinayudyawer).
 
 ![](images/session_0/Vinay.jpg)
 
-![](images/pic2.jpg)
+![](images/session_0/Mina.jpg)
 
 
 </div>

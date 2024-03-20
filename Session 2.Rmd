@@ -41,7 +41,7 @@ library(tidyverse)
 library(sf)
 library(mapview)
 library(leaflet)
-mapviewOptions(fgb=F)
+mapviewOptions(fgb=FALSE)
 
 tagdat <- 
   read_csv('https://raw.githubusercontent.com/vinayudyawer/OCS2024_SDMworkshop/main/data/Whaleshark.csv') %>% 
