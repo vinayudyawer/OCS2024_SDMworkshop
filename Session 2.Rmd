@@ -147,7 +147,7 @@ The package has a clear workflow, and we can walk through the first 4 steps to p
 Lets begin our data processing by first reading in the data, and formatting it so that the package can read it properly:
 
 ```{r, message=FALSE}
-library(tidyverse)
+
 library(aniMotum)
 
 raw_data <- read_csv('https://raw.githubusercontent.com/vinayudyawer/OCS2024_SDMworkshop/main/data/Whaleshark.csv')
@@ -257,7 +257,7 @@ fit2
 
 <br>
 
-This is a lot better! When predicting on a 48 hour time step with the pre-filter turned off, the models converged for all sharks. Let's focus on two shark as an example, lets use M-150 and M-130. 
+This is a lot better! When predicting on a 48 hour time step with the pre-filter turned off, the models converged for all sharks. Let's focus on two sharks as an example, lets use M-150 and M-130. 
 
 ```{r, message=FALSE, warning=FALSE}
 fit3 <- tagdat %>%
