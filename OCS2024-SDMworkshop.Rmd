@@ -16,38 +16,6 @@ editor_options:
     wrap: 150
 ---
 
-```{css, echo = FALSE}
-/* styles.css */
-
-.text-toggle button {
-  background-color: #009bff;
-  color: #fff;
-  border: none;
-  padding: 5px 10px;
-  border-radius: 5px;
-  cursor: pointer;
-}
-
-.text-toggle button:hover {
-  background-color: #0076b3;
-}
-
-#hidden-text {
-  display: none;
-}
-```
-
-<script>
-function toggleText() {
-  var x = document.getElementById("hidden-text");
-  if (x.style.display === "none") {
-    x.style.display = "block";
-  } else {
-    x.style.display = "none";
-  }
-}
-</script>
-
 ```{r, echo=FALSE}
 htmltools::img(src =knitr::image_uri('images/session_0/workshop_banner.png'),
                alt = 'logo', 
@@ -67,13 +35,13 @@ htmltools::img(src =knitr::image_uri('images/session_0/workshop_banner.png'),
 
 ### Who are we?
 
-<br>
+<br><br>
 
-**Mina** is a Research Associate in the Fish and Fisheries Lab at James Cook University. She first became interested in using R as a tool to wrangle
-large datasets to assess risks posed by climate change to both animal populations and the livelihoods of human communities reliant upon them. She has 
-worked as a teaching assistant at JCU, creating R boot camps and leading weekly workshops for students learning to model using **R**. 
+**Mina** is a Research Associate in the [Fish and Fisheries Lab](https://www.fishandfisheries.com) at James Cook University. She first became interested 
+in using R as a tool to wrangle large datasets to assess risks posed by climate change to both animal populations and the livelihoods of human communities
+reliant upon them. She has worked as a teaching assistant at JCU, creating R boot camps and leading weekly workshops for students learning to model using **R**. 
 
-<br>
+<br><br>
 
 **Vinay** is a Spatial Ecologist at the [Charles Darwin Foundation](https://www.darwinfoundation.org/en/). He is an ecologist that is particularly
 interested in using spatio-temporal datasets to understand animal movements and distributions patterns. He has considerable experience using **R** to
@@ -87,13 +55,15 @@ page](https://github.com/vinayudyawer).
 
 ![](images/session_0/Mina.jpg)
 
-<div>
+<br>
 
 ![](images/session_0/Vinay.jpg)
 
 
 </div>
 :::
+
+<br><br>
 
 ------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -142,6 +112,7 @@ Participants will learn how to construct predictive models and assess habitat su
 The final session focuses on integrating telemetry data with species distribution models, enabling the creation of comprehensive distribution maps and the 
 analysis of how environmental variables influence species presence and absence.
 
+<br><br>
 
 ------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -155,12 +126,11 @@ div.blue { background-color:#e6f0ff; border-radius: 5px; padding: 20px;}
 The course resources will be emailed to you prior to the workshop. However, you can also access the data and scripts we will work through in this
 course following these steps:
 
-**1. Download the course materials from [this link](https://github.com/vinayudyawer/SEA-workshop2023/raw/main/data/SEA-Workshop-2023.zip).**
+**1. Download the course walkthrough and code from [this link](https://raw.githubusercontent.com/vinayudyawer/OCS2024_SDMworkshop/main/R/OCS2024-SDMworkshop.zip).**
 
-**2. Unzip the downloaded file. It should have the following two folders and a html file:**
+**2. Unzip the downloaded file. It should have the following folder and a html file:**
 
 - [***Code***]{style="color:darkblue"} *folder*
-- [***Data***]{style="color:darkblue"} *folder*
 - [***OCS2024-SDMworkshop.html***]{style="color:darkblue"} *file*
 
 **3. Save all the files in a location on your computer you can find again during the workshop**
@@ -286,6 +256,11 @@ always!). If you want to update the packages you have, you can do it separately.
 <br><br>
 
 
+
+
+
+
+
 ## Session 1
 
 ### Basics of data cleaning and mapping using telemetry data
@@ -376,7 +351,7 @@ whaleshark$time <- format(whaleshark$DATE, "%H:%M:%S") # create a new column wit
 
 ![](images/session_1/tidyverse.png)
 
-##### One B: `Tidyverse` package 
+##### One B: `tidyverse` package 
 
 Alternatively, we can use the `tidyverse` package to do everything we just did above in base R. There are many reasons why various coders prefer `tidyverse` or base R. However, the ease of data manipulation in `tidyverse` makes it extremely helpful in handling data. 
 
@@ -452,7 +427,7 @@ whaleshark$DATE %>% class()
 
 But the main benefit to pipes is that they can be used to conduct multiple functions in a certain order instead of having to perform operations individually! This makes piping super handy for data manipulation and filtering. 
 
-<br><br<
+<br><br>
 
 #### Three: Data manipulation and filtering  
 
@@ -469,7 +444,7 @@ whaleshark %>%
 
 Pipes can also be used to pre-process our data before plotting them. Lets now use pipes to create a simple plot of number of detections of M-150 over time.
 
-```{r, message=FALSE, warning=FALSE}
+```{r, message=FALSE, fig.align = 'center', fig.height = 4, fig.width = 10}
 whaleshark %>% # take the whale shark df
   mutate(date = date(DATE)) %>% # then create a new column called date from the date time column
   subset(ANIMALID == "M-150") %>% # then subset to just the data from shark M-150 
@@ -492,7 +467,15 @@ Load up the `dplyr` package
 library(dplyr)
 ```
 
-Basic vocabulary
+
+<br>
+
+<style>
+div.blue { background-color:#e6f0ff; border-radius: 5px; padding: 20px;}
+</style>
+<div class = "blue">
+
+**Basic vocabulary**
 
 * select() columns from a tibble
 * filter() to rows matching a certain condition
@@ -503,7 +486,11 @@ Basic vocabulary
 
 Check out this useful online [cheatsheet](https://rstudio.github.io/cheatsheets/html/data-transformation.html?_gl=1*1osjb37*_ga*OTE3OTY4MTUzLjE2OTMyODk4OTM.*_ga_2C0WZ1JHG0*MTY5MzQ1NDM4NS4yLjAuMTY5MzQ1NDM4NS4wLjAuMA..) for data wrangling.
 
-`Select`
+</div>
+
+<br>
+
+`select`
 
 We can use the `select` function in `dplyr` to choose the columns we want to include for our analyses and plotting. Let's say we weren't interested in the 'ARGOSCLASS' column. We can remove the column using `select` in two different ways
 
@@ -516,8 +503,9 @@ whaleshark %>%
 ```
 In this case, our data came pretty tidy and we probably want to hold on to all the columns for now. 
 
+<br>
 
-`Filter` and `arrange`
+`filter` and `arrange`
 
 We can use these functions to subset the data to rows matching logical conditions and then arrange according to particular attributes
 ```{r, message=FALSE, warning=FALSE}
@@ -527,6 +515,8 @@ whaleshark %>%
   arrange(DATE) # arrange M-150's detections in chronological order
 
 ```
+
+<br>
 
 `group_by` and `summarise`
 
@@ -539,6 +529,7 @@ whaleshark %>%
 ```
 Now we can see that there is huge variability in number of detections for individuals. Whale shark M-130 has by far the most detections (202), while whale shark M-129 only has 16 detections. This might have implications for our modelling in session 2...
 
+<br>
 
 `mutate` 
 
@@ -573,15 +564,23 @@ The system provides mappings from your data to aesthetics which are used to cons
 
 Documentation for ggplot2 can be found [here](https://ggplot2.tidyverse.org/).
 
-There is also this awesome [cheetsheet] (https://rstudio.github.io/cheatsheets/html/data-visualization.html?_gl=1*hd7s9e*_ga*OTE3OTY4MTUzLjE2OTMyODk4OTM.*_ga_2C0WZ1JHG0*MTY5MzQ1NDM4NS4yLjAuMTY5MzQ1NDM4NS4wLjAuMA..) for `ggplot2`
+There is also this awesome 
+[cheetsheet](https://rstudio.github.io/cheatsheets/html/data-visualization.html?_gl=1*hd7s9e*_ga*OTE3OTY4MTUzLjE2OTMyODk4OTM.*_ga_2C0WZ1JHG0*MTY5MzQ1NDM4NS4yLjAuMTY5MzQ1NDM4NS4wLjAuMA) 
+for `ggplot2`
 
 Lets load up the package
 ```{r, message=FALSE, warning=FALSE}
 library(ggplot2)  
 ```
 
+<br>
 
-**ggplot2 grammar**
+<style>
+div.blue { background-color:#e6f0ff; border-radius: 5px; padding: 20px;}
+</style>
+<div class = "blue">
+
+***ggplot2 grammar***
 
 The basic idea: independently specify plot building blocks and combine them to create just about any kind of graphical display you want.
 
@@ -623,6 +622,8 @@ You can get a list of available geometric objects using the code below:
 ```{r, eval=FALSE}
 help.search("geom_", package = "ggplot2")
 ```
+
+</div>
 
 <br>
 
@@ -694,9 +695,9 @@ For simplicity, each projection can be referred to by a unique ID from the **Eur
 
 </div>
 
-<br>
+<br><br>
 
-###### Using the `sf` package to create spatial objects
+***Using the `sf` package to create spatial objects***
 
 The sf package makes it easy to convert any data frame into a spatial object which we can then plot and explore using other packages. The conversion from data frame to a spatial object can be done easily using the `st_as_sf()` function. Lets convert two data sets into spatial objects so we can plot them out. The main information we need to provide to convert it to a spatial object will be the names of the columns that denote the coordinates, and the CRS for the data. Our whaleshark data were recorded in the WGA 84 geographic datum in decimal degrees, which is the equivalent EPSG code of [4326](https://epsg.io/4326)
 
@@ -806,7 +807,7 @@ M150_path <-
 
 <br>
 
-###### ***OSM basemap*** 
+***OSM basemap*** 
 ```{r, eval=FALSE}
   
 ggplot() +
@@ -823,7 +824,7 @@ You will notice, you now have an extra folder in your working directory called '
 
 <br>
 
-###### ***Carto basemap***
+***Carto basemap***
 ```{r, eval=FALSE}
 
 ggplot() +
@@ -840,7 +841,7 @@ Cartolight is a grey marine basemap with societal land features such as city nam
 
 <br>
 
-###### ***Non-standard basemaps***
+***Non-standard basemaps***
 
 1. *ESRI Satellite imagery* 
 
@@ -897,7 +898,7 @@ ggplot() +
 
 <br><br>
 
-##### Six: Making dynamic maps using the `gganimate` package
+#### Six: Making dynamic maps using the `gganimate` package
 
 ------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -961,7 +962,7 @@ ggplot() +
 
 <br><br>
 
-##### Seven: Using the Mapview package to create interactive maps 
+#### Seven: Using the Mapview package to create interactive maps 
 
 ------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -1057,7 +1058,7 @@ map2
 We can then use the `mapshot()` function in the `mapview package` to save our interactive map as a html file or a png output. You can then share the html version of the output to collaborators, or upload them on websites for others to explore your data interactively.
 
 ```{r, eval=FALSE}
-mapview::mapshot(map2, url = "14_Spatial_Interactive2.html", remove_controls = NULL, selfcontained = TRUE)
+mapview::mapshot(map2, url = "Spatial_Interactive.html", remove_controls = NULL, selfcontained = TRUE)
 ```
 
 
@@ -1068,6 +1069,10 @@ mapview::mapshot(map2, url = "14_Spatial_Interactive2.html", remove_controls = N
 <a href="#top" style="color:steelblue; font:bold;" >Back to top</a>
 
 <br><br>
+
+
+
+
 
 
 
@@ -1622,6 +1627,10 @@ write_csv(null_dat, "null_data.csv")
 
 
 
+
+
+
+
 ## Session 3
 
 ### Basics of Species Distribution Models (SDMs)
@@ -1666,13 +1675,15 @@ are created in R, and the complexities of their development and interpretation.
 
 
 Here we will provide a quick tour of SDMs, but if you want a more in-depth look at what goes into building and refining a SDM, check out some of these 
-online sources ([SDM Intro](https://damariszurell.github.io/SDM-Intro/),[terra vignette](https://rspatial.org/raster/sdm/) and [Ecocommons](https://support.ecocommons.org.au/support/solutions/folders/6000240802/page/1?url_locale=)). There is also a wealth of literature on the subject
+online sources ([SDM Intro](https://damariszurell.github.io/SDM-Intro/), [terra vignette](https://rspatial.org/raster/sdm/) and [Ecocommons](https://support.ecocommons.org.au/support/solutions/folders/6000240802/page/1?url_locale=)). There is also a wealth of literature on the subject
 that you can refer to, including [this curated list](https://doi.org/10.1016/j.ecolmodel.2022.110242) of R packages that you can use to explore these analyses.
 
 
 In this session we will use occurrence data on Oceanic Whitetip Sharks (*Carcharhinus longimanus*) from the Indian Ocean to model their distribution
 using five commonly used SDM algorithms. We will also finally quickly introduce a simple ensemble model workflow to show how you can integrate outputs
-from multiple algorithms to get better predictions of distribution. ***We have provided code to replicate the analysis and plotting, but as we will have***
+from multiple algorithms to get better predictions of distribution. 
+
+***We have provided code to replicate the analysis and plotting, but as we will have***
 ***limited time during this session, we dont expect everyone to run these code. You can run them on your own time to see how it works!***
 
 <br><br>
@@ -2080,7 +2091,7 @@ plot(glm_link > glm_threshold)
 
 ------------------------------------------------------------------------------------------------------------------------------------------------------
 
-[Back to top](#session_3)
+[Explore the other models](#session_3)
 
 <br><br>
 
@@ -2173,7 +2184,7 @@ plot(gam_link > gam_threshold)
 
 ------------------------------------------------------------------------------------------------------------------------------------------------------
 
-[Back to top](#session_3)
+[Explore the other models](#session_3)
 
 <br><br>
 
@@ -2269,7 +2280,7 @@ plot(rf_link)
 
 ------------------------------------------------------------------------------------------------------------------------------------------------------
 
-[Back to top](#session_3)
+[Explore the other models](#session_3)
 
 <br><br>
 
@@ -2367,7 +2378,7 @@ plot(maxent_predict > maxent_threshold)
 
 ------------------------------------------------------------------------------------------------------------------------------------------------------
 
-[Back to top](#session_3)
+[Explore the other models](#session_3)
 
 <br><br>
 
@@ -2428,6 +2439,9 @@ plot(w_average_threshold_map)
 <a href="#top" style="color:steelblue; font:bold;" >Back to top</a>
 
 <br><br>
+
+
+
 
 
 
@@ -2846,14 +2860,15 @@ plot(gamm_link > gamm_threshold)
 
 <br><br>
 
-#### Modelling move persistance ($\gamma_{t}$)
-
-------------------------------------------------------------------------------------------------------------------------------------------------------
-
 <style>
 div.blue { background-color:#e6f0ff; border-radius: 5px; padding: 20px;}
 </style>
 <div class = "blue">
+
+
+#### Modelling move persistance ($\gamma_{t}$)
+
+------------------------------------------------------------------------------------------------------------------------------------------------------
 
 In session 2, we used the `aniMotum` package to built a move persistence model, to incorporate a continuous-valued behavioural index into our tracks. 
 The move persistence variable ($\gamma_{t}$). Move persistence is an index of movement behaviour and is a continuous value between 0-1. The value represents

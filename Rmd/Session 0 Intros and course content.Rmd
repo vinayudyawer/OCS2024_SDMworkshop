@@ -1,0 +1,264 @@
+---
+title:
+subtitle: 
+author:
+date:
+output:
+  html_document:
+    toc: false
+    toc_float: true 
+    depth: 2
+    number_sections: false
+    theme: spacelab
+    highlight: pygments
+editor_options: 
+  markdown: 
+    wrap: 150
+---
+
+```{r, echo=FALSE}
+htmltools::img(src =knitr::image_uri('images/session_0/workshop_banner.png'),
+               alt = 'logo', 
+               style = 'position:center; top:0; left:0; padding:0px;')
+```
+
+------------------------------------------------------------------------------------------------------------------------------------------------------
+
+# Using animal tracking data to explore behaviour and distributions of species {.tabset .tabset-fade}
+
+<br>
+
+## Introductions
+
+::: {style="display: grid; grid-template-columns: 2fr 1fr; grid-column-gap: 60px;"}
+<div>
+
+### Who are we?
+
+<br><br>
+
+**Mina** is a Research Associate in the [Fish and Fisheries Lab](https://www.fishandfisheries.com) at James Cook University. She first became interested 
+in using R as a tool to wrangle large datasets to assess risks posed by climate change to both animal populations and the livelihoods of human communities
+reliant upon them. She has worked as a teaching assistant at JCU, creating R boot camps and leading weekly workshops for students learning to model using **R**. 
+
+<br><br>
+
+**Vinay** is a Spatial Ecologist at the [Charles Darwin Foundation](https://www.darwinfoundation.org/en/). He is an ecologist that is particularly
+interested in using spatio-temporal datasets to understand animal movements and distributions patterns. He has considerable experience using **R** to
+analyse and visualise large and complex spatial datasets. He has developed **R** code and packages to analyse 2 and 3 dimensional movement patterns of
+animals using acoustic telemetry data from single study sites to continental scale arrays. Vinay's **R** codes can be found on his [github
+page](https://github.com/vinayudyawer).
+
+</div>
+
+<div>
+
+![](images/session_0/Mina.jpg)
+
+<br>
+
+![](images/session_0/Vinay.jpg)
+
+
+</div>
+:::
+
+<br><br>
+
+------------------------------------------------------------------------------------------------------------------------------------------------------
+
+### Course outline
+
+**In this course you will learn to work with spatial datasets and spatial models using R**. This workshop will
+demonstrate how **R** can make the processing of spatial data much quicker and easier than using standard GIS software! At the end of this workshop
+you will also have the annotated **R** code that you can re-run at any time, share with collaborators and build on with those newly acquired data!
+
+We designed this course not to comprehensively cover all the tools in **R**, but rather to give you an understanding of options on how to analyse your
+satellite telemetry data and build spatial models. Every new project comes with its own problems and questions and you will need to be
+independent, patient and creative to solve these challenges. It makes sense to invest time in becoming familiar with **R**, because today **R** is the
+leading platform for environmental data analysis and has some other functionalities which may surprise you!
+
+<br>
+
+This **R** workshop is intended to run across 4 sessions.
+
+<br>
+
+-   **Session 1:** *Basics of data cleaning and mapping using telemetry data*
+
+This session will address the fundamentals of data pre-processing and visualisation, utilising the `tidyverse`, `sf`, and `ggspatial` R packages. 
+Participants will learn efficient data cleaning methods, organisation of telemetry data, and the creation of geospatial visualisations to gain 
+insights into animal movements.
+
+<br>
+
+-   **Session 2:** *Using satellite telemetry data to define behaviours*
+
+The second session will introduce participants to the `aniMotum` package, a valuable tool for analysing animal movement data. Attendees will acquire
+the skills to define distinct behavioural patterns exhibited by tracked animals.
+
+<br>
+
+-   **Session 3:** *Basics of Species Distribution Models (SDMs)*
+
+Species distribution models are instrumental in predicting and understanding the geographic ranges of species. In this session, we will delve into the 
+theory of SDMs and use a number of R tools inluding `dismo`, `mgcv` and `randomForest` R packages, covering the basics of species distribution modelling. 
+Participants will learn how to construct predictive models and assess habitat suitability for species.
+
+<br>
+
+-   **Session 4:** *Using telemetry data to define species distributions*
+
+The final session focuses on integrating telemetry data with species distribution models, enabling the creation of comprehensive distribution maps and the 
+analysis of how environmental variables influence species presence and absence.
+
+<br><br>
+
+------------------------------------------------------------------------------------------------------------------------------------------------------
+
+<style>
+div.blue { background-color:#e6f0ff; border-radius: 5px; padding: 20px;}
+</style>
+<div class = "blue">
+
+### Course Resources
+
+The course resources will be emailed to you prior to the workshop. However, you can also access the data and scripts we will work through in this
+course following these steps:
+
+**1. Download the course materials from [this link](https://github.com/vinayudyawer/SEA-workshop2023/raw/main/data/SEA-Workshop-2023.zip).**
+
+**2. Unzip the downloaded file. It should have the following two folders and a html file:**
+
+- [***Code***]{style="color:darkblue"} *folder*
+- [***Data***]{style="color:darkblue"} *folder*
+- [***OCS2024-SDMworkshop.html***]{style="color:darkblue"} *file*
+
+**3. Save all the files in a location on your computer you can find again during the workshop**
+    
+</div>
+
+------------------------------------------------------------------------------------------------------------------------------------------------------
+
+<a href="#top" style="color:steelblue; font:bold;" >Back to top</a>
+
+<br><br>
+
+## Software installation
+
+<br>
+
+Processing and analysing large datasets like those from animal telemetry work can require a huge investment in time: rearranging data, removing
+erroneous values, purchasing, downloading and learning the new software, and running analyses. Furthermore merging together Excel spreadsheets,
+filtering data and preparing data for statistical analyses and plotting in different software packages can introduce all sorts of errors.
+
+**R** is a powerful language for data wrangling and analysis because...
+
+-   It is relatively *fast* to run and process commands
+-   You can create *repeatable* scripts
+-   You can *trace errors* back to their source
+-   You can *share your scripts* with other people
+-   It is *easy to identify errors* in large data sets
+-   Having your data in **R** opens up a huge array of cutting edge analysis tools.
+-   **R** is also totally **FREE!**
+
+<br>
+
+**Installing packages**
+
+Part of the reason **R** has become so popular is the vast array of packages that are freely available and highly accessible. In the last few years,
+the number of packages has grown exponentially [\> 10,000 on CRAN!](http://blog.revolutionanalytics.com/2017/01/cran-10000.html) These can help you to
+do a galaxy of different things in **R**, including *running complex analyses*, drawing *beautiful figures*, running *R as a GIS*, constructing your
+own *R packages*, building *web pages* and even *writing R course handbooks* like this one!
+
+Let's suppose you want to load the `sf` package to access this package's incredible spatial functionality. If this package is not already installed on
+your machine, you can download it from the web by using the following command in **R**.
+
+```{r, include=TRUE, eval=FALSE, class.source = 'fold-show'}
+install.packages("sf", repos='http://cran.us.r-project.org')
+```
+
+In this example, `sf` is the package to be downloaded and '<http://cran.us.r-project.org>' is the repository where the package will be accessed from.
+
+<br>
+
+More recently, package developers have also used other platforms like [**GitHub**](https://github.com) to house **R** packages. This has enabled users
+to access packages that are actively being updated and enable developers to fix problems and develop new features with user feedback.
+
+The `remotes` and `devtools` **R** packages have enabled the installation of packages directly from platforms like **GitHub**. For example, if we want
+want to download the `visreg` package from the github repository, we can use the `install_github()` package to do it like this:
+
+```{r, include=TRUE, eval=FALSE, class.source = 'fold-show'}
+remotes::install_github("pbreheny/visreg")
+```
+
+
+------------------------------------------------------------------------------------------------------------------------------------------------------
+
+<style>
+div.blue { background-color:#e6f0ff; border-radius: 5px; padding: 20px;}
+</style>
+<div class = "blue">
+
+### Installation instructions:
+
+For this course, make sure you have downloaded and installed the most updated versions of the following software:
+
+<br>
+
+**1. Download R for your relevant operating system from the [CRAN website](https://cran.rstudio.com)** <br>
+
+**2. Download RStudio for your relevant operating system from the [RStudio website](https://posit.co/products/open-source/rstudio/)** <br>
+
+**3. Once you've installed the above software, make sure you install the following packages prior to the start of the course**
+
+```{r, include=TRUE, eval=FALSE, class.source = 'fold-show'}
+## Packages that are on CRAN
+
+install.packages(c("tidyverse",
+                   "sf",
+                   "terra",
+                   "raster",
+                   "lubridate",
+                   "ggspatial",
+                   "ggaminate",
+                   "leaflet",
+                   "remotes",
+                   "dismo",
+                   "stats",
+                   "mgcv",
+                   "mgcViz",
+                   "randomForest",
+                   "plotly",
+                   "patchwork"
+                   ))
+
+## Install packages from GitHub and other external repositories
+
+remotes::install_github("r-spatial/mapview", build_vignettes = TRUE)
+remotes::install_github("pbreheny/visreg", build_vignettes = TRUE)
+install.packages("aniMotum", 
+                 repos = c("https://cloud.r-project.org",
+                 "https://ianjonsen.r-universe.dev"),
+                 dependencies = TRUE)
+
+```
+
+When downloading from **GitHub**, the R console will ask you if it should also update packages. In most cases, you can skip updating packages (**option [3]**)
+as this often stalls the whole process of downloading the package. If there are package dependencies, these will often be downloaded automatically (but not
+always!). If you want to update the packages you have, you can do it separately.
+
+</div>
+
+------------------------------------------------------------------------------------------------------------------------------------------------------
+
+<a href="#top" style="color:steelblue; font:bold;" >Back to top</a>
+
+<br><br>
+
+
+
+
+
+
+
