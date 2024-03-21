@@ -3,7 +3,10 @@
 library(tidyverse)
 library(terra)
 library(ggspatial)
+library(plotly)
+library(patchwork)
 
+## ---------------------------------------------------------------------------------------------------------------- ##
 ## add land for remove points on land (internal only not for the course)
 ## Land data
 # sf_use_s2(FALSE)
@@ -17,7 +20,7 @@ library(ggspatial)
 # 
 # sf_use_s2(TRUE)
 
-
+## ---------------------------------------------------------------------------------------------------------------- ##
 ## Input occurrence data
 
 tracks <- read_csv('https://raw.githubusercontent.com/vinayudyawer/OCS2024_SDMworkshop/main/data/session_4/track_data.csv')
@@ -28,7 +31,6 @@ background <- read_csv('https://raw.githubusercontent.com/vinayudyawer/OCS2024_S
 
 model_extent <- vect("https://raw.githubusercontent.com/vinayudyawer/OCS2024_SDMworkshop/main/data/session_3/mod_ext.GeoJSON")
 
-
 # quick plot to show the presence and pseudo absences
 
 ggplot() +
@@ -37,10 +39,10 @@ ggplot() +
   geom_spatial_point(data = background, aes(x = lon, y = lat), col = "grey", crs = 4326) +
   geom_spatial_point(data = null_tracks, aes(x = lon, y = lat), col = "pink", crs = 4326) +
   geom_spatial_point(data = tracks, aes(x = lon, y = lat), col = "firebrick", crs = 4326) +
+  facet_wrap(~id) +
   theme_void()
 
-
-
+## ---------------------------------------------------------------------------------------------------------------- ##
 ## Input environmental data
 env_stack <- rast("https://raw.githubusercontent.com/vinayudyawer/OCS2024_SDMworkshop/main/data/session_3/env_layers.tif")
 
@@ -49,15 +51,83 @@ env_stack <- rast("https://raw.githubusercontent.com/vinayudyawer/OCS2024_SDMwor
 plot(env_stack)
 
 
-
+## ---------------------------------------------------------------------------------------------------------------- ##
 ## extract environmental data for each occurrence, pseudo-absence and background point
 
 tracks_vec <- vect(tracks, geom=c("lon", "lat"), crs = "EPSG:4326")
 null_vec <- vect(null_tracks, geom=c("lon", "lat"), crs = "EPSG:4326")
-bg_vec <- vect(tracks, geom=c("lon", "lat"), crs = "EPSG:4326")
+bg_vec <- vect(background, geom=c("lon", "lat"), crs = "EPSG:4326")
+
+tracks_env <- 
+  tracks %>% 
+  bind_cols(extract(env_stack, tracks_vec)[-1])
+
+null_env <- 
+  null_tracks %>% 
+  bind_cols(extract(env_stack, null_vec)[-1])
+
+bg_env <- 
+  background %>% 
+  bind_cols(extract(env_stack, bg_vec)[-1])
+
+
+## ---------------------------------------------------------------------------------------------------------------- ##
+# combine into a single data frame to allow for visualising and modelling
+
+# model_data <- read_csv('https://raw.githubusercontent.com/vinayudyawer/OCS2024_SDMworkshop/main/data/session_4/model_data.csv')
+
+model_data <- 
+  bind_rows(tracks_env, null_env, bg_env) %>% 
+  mutate(presence = case_when(type %in% c("occurrence") ~ 1,
+                              TRUE ~ 0)) %>% 
+  filter_at(vars(bathymetry, current_velocity, mixed_layer_depth, temperature), all_vars(!is.na(.)))
+  
+
+# lets look at the distrutbutions of the environmental variables
+model_data %>% ggplot(aes(x = bathymetry)) + geom_histogram() + theme_bw() +
+model_data %>% ggplot(aes(x = temperature)) + geom_histogram() + theme_bw() +
+model_data %>% ggplot(aes(x = current_velocity)) + geom_histogram() + theme_bw() +
+model_data %>% ggplot(aes(x = mixed_layer_depth)) + geom_histogram() + theme_bw()
+
+
+# transform data to correct skewness in variables
+trans_data <-
+  model_data %>% 
+  mutate(current_velocity = log10(current_velocity),
+         temperature = exp(temperature),
+         mixed_layer_depth = log10(mixed_layer_depth))
+
+
+trans_data %>% ggplot(aes(x = bathymetry)) + geom_histogram() + theme_bw() +
+trans_data %>% ggplot(aes(x = temperature)) + geom_histogram() + theme_bw() +
+trans_data %>% ggplot(aes(x = current_velocity)) + geom_histogram() + theme_bw() +
+trans_data %>% ggplot(aes(x = mixed_layer_depth)) + geom_histogram() + theme_bw()
+
+# lets visualise the data in environmental space
+
+trans_data %>% 
+  plot_ly(x = ~bathymetry, 
+        y = ~temperature,
+        z = ~current_velocity,
+        color = ~type) %>% 
+  add_markers()
 
 
 ## Now lets build a model
+library(gamm4)
+mod_gamm <- gamm(presence ~ s(bathymetry) + s(temperature) + 
+                   s(current_velocity) + s(mixed_layer_depth), 
+                 data = trans_data,
+                 random = list(id = ~id),
+                 method = "REML", niterPQL = 5,
+                 family = binomial("logit"))
+
+
+
+
+
+
+
 
 
 
