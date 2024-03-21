@@ -16,18 +16,32 @@ editor_options:
     wrap: 150
 ---
 
-## Session 1 - Basics of data cleaning and mapping using telemetry data
+## Session 1
+
+### Basics of data cleaning and mapping using telemetry data
+
+|                                 |
+|:--------------------------------|
+| ![](images/session_1/blacktip.png) |
+
+<br>
 
 This session will address the fundamentals of data pre-processing and visualisation, utilising `lubridate`, `tidyverse`, `sf`, `ggspatial`, and `gganimate` **R** packages. Participants will learn efficient data cleaning methods, organisation of telemetry data, and the creation of geospatial visualisations to gain insights into animal distributions and movements.
 
 
-# One: Reading the data
+<br><br>
+
+#### One: Reading the data
+
+------------------------------------------------------------------------------------------------------------------------------------------------------
 
 Before we can analyze these data, we first need to read the dataset into **R**. The 'comma separated value' (.csv) format is a popular and effective way to export large data sets. This format is a preferred way to store your data, and easily import into R. 
 
 In this session, we will explore how to import a .csv file using base R and using tidyverse. 
 
-# One A: Base R
+<br>
+
+##### One A: Base R
 
 A .csv file can be imported into R using the read.csv base function, and by telling R where the file is located on your computer. 
 
@@ -86,8 +100,9 @@ whaleshark$time <- format(whaleshark$DATE, "%H:%M:%S") # create a new column wit
 
 ```
 
+<br>
 
-# One B: `Tidyverse` package 
+##### One B: `Tidyverse` package 
 
 Alternatively, we can use the `tidyverse` package to do everything we just did above in base R. There are many reasons why various coders prefer `tidyverse` or base R. However, the ease of data manipulation in `tidyverse` makes it extremely helpful in handling data. 
 
@@ -111,7 +126,11 @@ whaleshark <- read_csv('https://raw.githubusercontent.com/vinayudyawer/OCS2024_S
 As you can see, the date field is already a 'dttm' (date time) object. How clever of tidyverse to automatically know this! 
 
 
-# Two: Data Exploration 
+<br><br>
+
+#### Two: Data Exploration 
+
+------------------------------------------------------------------------------------------------------------------------------------------------------
 
 Now that we've loaded our tracking dataset, let's explore the data! We are going to use the read_csv() version of the data, where the 'DATE' field is already a 'dttm'. 
 
@@ -129,7 +148,9 @@ whaleshark %>% class() # In English: take the 'whaleshark' data frame and run th
 
 ```
 
-Benefits of pipes %>%
+<br><br>
+
+***Benefits of pipes %>%***
 
 * Functions flow in natural order that tells story about data.
 * Code effects are easy to reason about by inserting View() or head() into pipe chain.
@@ -157,8 +178,11 @@ whaleshark$DATE %>% class()
 
 But the main benefit to pipes is that they can be used to conduct multiple functions in a certain order instead of having to perform operations individually! This makes piping super handy for data manipulation and filtering. 
 
+<br><br<
 
-# Three: Data manipulation and filtering  
+#### Three: Data manipulation and filtering  
+
+------------------------------------------------------------------------------------------------------------------------------------------------------
 
 For example, lets figure out how many detections we have for whale shark 'M-150'...
 ```{r}
@@ -180,8 +204,9 @@ whaleshark %>% # take the whale shark df
 
 ```
 
+<br>
 
-# `dplyr` package: using dplyr for data wrangling
+##### `dplyr` package: using dplyr for data wrangling
 
 * dplyr is the data wrangling workhorse of the tidyverse.
 * Provides functions, verbs, that can manipulate data into the shape you need for analysis.
@@ -262,8 +287,11 @@ whaleshark <-
 
 By assigning whaleshark <- before the operations, we have now made a permanent change to the 'whaleshark' dataframe. If you're making lots of changes to your data, it's good practice to preserve previous versions of your data in case you need to go back to an earlier version. For the purpose of this demonstration, we will just write over the previous version. 
 
+<br><br>
 
-# Four: Data visualization using `ggplot`
+#### Four: Data visualization using `ggplot`
+
+------------------------------------------------------------------------------------------------------------------------------------------------------
 
 `ggplot2` is a powerful data visualization package for the **R** programming language. The package makes it very easy to generate some very impressive figures and utilise a range of colour palettes, taking care of many of the fiddly details that can make plotting graphs in **R** a hassle.
 
@@ -322,8 +350,9 @@ You can get a list of available geometric objects using the code below:
 help.search("geom_", package = "ggplot2")
 ```
 
+<br>
 
-# Basic plotting and data visualization 
+##### Basic plotting and data visualization 
 
 In the script below, we call in the whaleshark dataset, perform some operations on it, and then pipe it into a ggplot() function, in this case we are using geom_boxplot() to create a box plot
 
@@ -351,11 +380,13 @@ whaleshark %>%
 ```
 Now we can see that Sharks M-130 and M-150 have the largest date range of detections, while shark M-129, we detected the least, and over the shortest date range. 
 
+<br><br>
 
+#### Five: Spatial Mapping in **R**
 
-# Five: Spatial Mapping in **R**
+------------------------------------------------------------------------------------------------------------------------------------------------------
 
-# Five A: Introduction to the `sf` package for spatial mapping 
+##### Five A: Introduction to the `sf` package for spatial mapping 
 
 Up until this point, we've been visualizing, manipulating, and cleaning the data by looking at number of individuals, number of detections, and date range of detections. But since this is spatial data, we can look more deeply into the longitude and latitude columns to understand where exactly these animals are. 
 
@@ -380,7 +411,9 @@ In the next step, we will convert our whaleshark dataset (whaleshark) into a spa
 
 For simplicity, each projection can be referred to by a unique ID from the **European Petroleum Survey Group (EPSG)** geodetic parameter dataset. You can find the relevant EPSG code for your coordinate system from this [website](https://epsg.io/). There, simply enter in a key word in the search box and select from the list the correct coordinate system. There is a map image in the top right of the site to help you.
 
-# Using the `sf` package to create spatial objects
+<br>
+
+###### Using the `sf` package to create spatial objects
 
 The sf package makes it easy to convert any data frame into a spatial object which we can then plot and explore using other packages. The conversion from data frame to a spatial object can be done easily using the `st_as_sf()` function. Lets convert two data sets into spatial objects so we can plot them out. The main information we need to provide to convert it to a spatial object will be the names of the columns that denote the coordinates, and the CRS for the data. Our whaleshark data were recorded in the WGA 84 geographic datum in decimal degrees, which is the equivalent EPSG code of [4326](https://epsg.io/4326)
 
@@ -389,7 +422,7 @@ First lets load the sf package
 library(sf)
 ```
 
-# st_as_sf() 
+`st_as_sf()` 
 
 Next we can convert out whale shark data frame into a 'simple feature' (aka a spatial object) using the `st_as_sf()` function in the `sf` package 
 
@@ -406,7 +439,9 @@ Now if you look at the sf objects we've created, it gives information of what ki
 head(whaleshark_sf)
 ```
 
-# Five B: Plotting a spatial object using `ggplot2`
+<br>
+
+##### Five B: Plotting a spatial object using `ggplot2`
 
 We can make a simple plot to visualize the points spatially using the `ggplot2` package, specifically the `geom_sf()` function 
 
@@ -444,7 +479,9 @@ ggplot() +
 ```
 That's much better! 
 
-# Five C: Introduction to the `ggspatial package` for static spatial mapping 
+<br>
+
+##### Five C: Introduction to the `ggspatial package` for static spatial mapping 
 
 The above plot is great for visualizing the data but lets say we want to make a more formal, polished figure that is publication ready. The `ggspatial` package is a very useful package that allows you to integrate basemaps to your plots. Adding basemaps means you can do more complex mapping without the need to import multiple shapefules. These basemaps also include satellite imagery which means you can produce nice maps with a variety of basemaps in the background. The grammer used by the `ggspatial` package is similar to that of `ggplot2`, which makes swapping between the two easy. 
 
@@ -471,7 +508,9 @@ M150_path <-
 
 ```
 
-# OSM basemap 
+<br>
+
+###### ***OSM basemap*** 
 ```{r}
   
 ggplot() +
@@ -484,7 +523,9 @@ ggplot() +
 
 You will notice, you now have an extra folder in your working directory called rosm.cache. This is the folder ggspatial uses to cache basemap images for your locations and zoom level. This reduces the number of times we have to download the basemap images if we are plotting the same map multiple times. Now lets explore other basemap options that may be useful for making professional looking plots:
 
-# Carto Basemap 
+<br>
+
+###### ***Carto basemap***
 ```{r}
 ggplot() +
   annotation_map_tile(type = "cartolight", zoom = 8) +
@@ -495,9 +536,11 @@ ggplot() +
 ```
 Cartolight is a grey marine basemap with societal land features such as city names and roads. Because our shark is in out in the Indian ocean, away from land, this basemap isn't as appropriate for this particular situation. But, it is an option! 
 
-# Non-standard basemaps
+<br>
 
-# 1. ESRI Satellite imagery 
+###### ***Non-standard basemaps***
+
+1. *ESRI Satellite imagery* 
 
 ```{r}
 
@@ -512,7 +555,7 @@ ggplot() +
 
 ```
 
-# 2. ESRI topographical imagery 
+2. *ESRI topographical imagery* 
 
 ```{r}
 esri_topo <- paste0('https://services.arcgisonline.com/arcgis/rest/services/',
@@ -539,8 +582,11 @@ ggplot() +
 
 ```
 
+<br><br>
 
-# Six: Making dynamic maps using the `gganimate` package
+##### Six: Making dynamic maps using the `gganimate` package
+
+------------------------------------------------------------------------------------------------------------------------------------------------------
 
 We've explored creating static maps in **R** but for tracking data, it can be useful to create animated maps to visualise animal tracks in real time. 
 
@@ -592,21 +638,34 @@ ggplot() +
 
 ```
 
-<br>
+<br><br>
 
-# Seven: Using the Mapview package to create interactive maps 
+##### Seven: Using the Mapview package to create interactive maps 
 
-The `mapview package` is a really simple way of creating interactive maps. 
+------------------------------------------------------------------------------------------------------------------------------------------------------
+
+The `mapview` package is a really simple way of creating interactive maps. 
 
 First lets load up `mapview` package
+
 ```{r}
 library(mapview)
 
 mapviewOptions(fgb = FALSE) 
 ```
 
-Fun fact: If set to TRUE, mapview uses a file format called flatgeobuf (fgb). FGB allows the resultant map to load faster because the html output doesn't contain the data directly, moreso a snapshot of the data. This is super handy when working with large datasets! The trade off is that this optimization can sometimes leads to issues with mapping. If you're curious go ahead and try the following maps with 'fgb = TRUE' and 'fgb = FALSE' to see the difference for yourself! 
+<br>
 
+<style>
+div.blue { background-color:#e6f0ff; border-radius: 5px; padding: 20px;}
+</style>
+<div class = "blue">
+
+***Fun fact:*** If set to TRUE, mapview uses a file format called flatgeobuf (fgb). FGB allows the resultant map to load faster because the html output doesn't contain the data directly, more so a snapshot of the data. This is super handy when working with large datasets! The trade off is that this optimization can sometimes leads to issues with mapping. If you're curious go ahead and try the following maps with 'fgb = TRUE' and 'fgb = FALSE' to see the difference for yourself! 
+
+</div>
+
+<br>
 
 Next, let's use the `mapview` package to visualise the movements for all our sharks. 
 ```{r}

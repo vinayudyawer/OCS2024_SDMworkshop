@@ -16,8 +16,6 @@ editor_options:
     wrap: 150
 ---
 
-------------------------------------------------------------------------------------------------------------------------------------------------------
-
 ```{css, echo = FALSE}
 /* styles.css */
 
@@ -57,6 +55,7 @@ htmltools::img(src =knitr::image_uri('images/session_0/workshop_banner.png'),
 ```
 
 ------------------------------------------------------------------------------------------------------------------------------------------------------
+
 # Using animal tracking data to explore behaviour and distributions of species {.tabset .tabset-fade}
 
 <br>

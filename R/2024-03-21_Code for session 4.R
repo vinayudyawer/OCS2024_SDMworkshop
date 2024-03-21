@@ -50,11 +50,11 @@ ggplot() +
 ## ---------------------------------------------------------------------------------------------------------------- ##
 ## Input environmental data
 env_stack <- rast("https://raw.githubusercontent.com/vinayudyawer/OCS2024_SDMworkshop/main/data/session_3/env_layers.tif")
+# env_stack$lon <- rep(seq(30.2, 108.4, by = 0.2), dim(env_stack)[1])
+# env_stack$lat <- rep(seq(-32.55, 30.65, by = 0.2), each = dim(env_stack)[2])
 
 # quick plot
-
 plot(env_stack)
-
 
 ## ---------------------------------------------------------------------------------------------------------------- ##
 ## extract environmental data for each occurrence, pseudo-absence and background point
@@ -94,7 +94,7 @@ model_data <-
 model_data %>% ggplot(aes(x = bathymetry)) + geom_histogram() + theme_bw() +
 model_data %>% ggplot(aes(x = temperature)) + geom_histogram() + theme_bw() +
 model_data %>% ggplot(aes(x = current_velocity)) + geom_histogram() + theme_bw() +
-model_data %>% ggplot(aes(x = mixed_layer_depth)) + geom_histogram() + theme_bw()
+model_data %>% ggplot(aes(x = mixed_layer_depth)) + geom_histogram() + theme_bw() 
 
 # ggsave("images/session_4/3_plot.png", a, width = 8, height = 6)
 
@@ -160,7 +160,7 @@ gamm_mod <- gamm(presence ~ s(bathymetry) + s(temperature) +
                    s(current_velocity) + s(mixed_layer_depth), 
                  data = training_data,
                  random = list(id = ~id),
-                 method = "REML", 
+                 method = "REML",
                  family = binomial("logit"))
 
 
@@ -258,14 +258,15 @@ mp_mod <- gam(g ~ s(bathymetry) + s(temperature) +
                data = trans_data, 
               family = quasibinomial("logit"))
 
-visreg::visreg(mp_mod, scale = "response", gg = T)
+# visreg::visreg(mp_mod, scale = "response", partial = T, gg = T)
 
-a <- visreg(mp_mod, xvar = "bathymetry", scale = "response", xlab = "Bathymetry (m)", ylab = "Move persistance (g)", gg = T) + theme_bw()
-b <- visreg(mp_mod, xvar = "current_velocity", scale = "response", xlab = "Current Velocity (ms-1)", ylab = NULL, gg = T) + theme_bw()
-c <- visreg(mp_mod, xvar = "mixed_layer_depth", scale = "response", xlab = "Mixed Layer Depth (m)", ylab = NULL, gg = T) + theme_bw()
-d <- visreg(mp_mod, xvar = "temperature", scale = "response", xlab = "Sea Surface Temperature (˚C)", ylab = NULL, gg = T) + theme_bw()
+a <- visreg(mp_mod, xvar = "bathymetry", scale = "response", partial = T, xlab = "Bathymetry (m)", ylab = bquote("Move persistance"~(gamma[t])), gg = T) + theme_bw()
+b <- visreg(mp_mod, xvar = "current_velocity", scale = "response", partial = T,xlab = "Current Velocity (ms-1)", ylab = NULL, gg = T) + theme_bw()
+c <- visreg(mp_mod, xvar = "mixed_layer_depth", scale = "response", partial = T,xlab = "Mixed Layer Depth (m)", ylab = NULL, gg = T) + theme_bw()
+d <- visreg(mp_mod, xvar = "temperature", scale = "response", partial = T,xlab = "Sea Surface Temperature (˚C)", ylab = NULL, gg = T) + theme_bw()
 
 gam_plot <- (a + b + c + d) + plot_layout(nrow = 1)
+gam_plot
 # ggsave("images/session_4/mp_visreg.png", gam_plot, width = 20, height = 5)
 
 visreg2d(mp_mod, xvar = "mixed_layer_depth", yvar = "temperature", scale = "response", plot.type = "persp",

@@ -33,9 +33,9 @@ predictive models and assess habitat suitability for species.
 
 <br>
 
-------------------------------------------------------------------------------------------------------------------------------------------------------
-
 #### Theory and Concept
+
+------------------------------------------------------------------------------------------------------------------------------------------------------
 
 Species Distribution Models (SDMs) are fundamental tools in ecology and conservation biology, aiming to understand and predict the spatial
 distribution of species based on environmental variables. At its core, SDMs are grounded in the ecological niche theory, which suggests that species
@@ -72,10 +72,9 @@ from multiple algorithms to get better predictions of distribution. ***We have p
 <br><br>
 
 
-------------------------------------------------------------------------------------------------------------------------------------------------------
-
 #### Basic steps of building SDMs
 
+------------------------------------------------------------------------------------------------------------------------------------------------------
 
 Building a SDM is an iterative process, and typically involves several steps. The paper [Zurell et al. 2020](https://doi.org/10.1111/ecog.04960) provides a
 comprehensive step by step run through of a standard protocol on how to develop SDMs and how to report them in papers to allow for reproducibility. 
@@ -138,9 +137,9 @@ data or variables as needed to improve accuracy and robustness.
 
 <br><br>
 
-------------------------------------------------------------------------------------------------------------------------------------------------------
-
 #### Data preperation                                       
+
+------------------------------------------------------------------------------------------------------------------------------------------------------
 
 Here we will go through a quick workflow in R to enable a ***very simple*** SDM, from sourcing occurrence data all the way to building ensemble models. 
 Note, this is an overly simplistic example just to get everyone up to speed on how SDMs operate using occurrence data. We will go through how this modelling
@@ -306,10 +305,9 @@ plot(env_stack)
 <br><br>
 
 
-------------------------------------------------------------------------------------------------------------------------------------------------------
-
 #### Model fitting {.tabset .tabset-fade .tabset-pills}
 
+------------------------------------------------------------------------------------------------------------------------------------------------------
 
 Now that we have all our basic components to build a SDM, lets have a look at some of the algorithms commonly used to build distribution models. Here
 we will use the occurrence, pseudo-absence and environmental data to build four types of models. For each algorithm we will build the model, explore
@@ -768,6 +766,8 @@ plot(maxent_predict > maxent_threshold)
 <br><br>
 
 #### **Ensemble Models**
+
+------------------------------------------------------------------------------------------------------------------------------------------------------
 
 Ensemble models in SDMs are approaches that combine predictions from multiple individual models to generate a more robust and accurate prediction of 
 species distributions. These models leverage the diversity of individual modeling techniques or variations in model parameters to capture different aspects

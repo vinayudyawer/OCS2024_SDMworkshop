@@ -218,6 +218,10 @@ Lets try and retain as much data as we can and move onto the second step; choosi
 
 - ***Continuous-time Move Persistence (MP) model*** - where movements between positions are modeled as random with correlations in direction and magnitude that vary in time.
 
+
+<br>
+
+
 *"The MP approach is most appropriate for fitting to irregularly timed and error-prone Argos data as both aspects are taken into account explicitly".* (Johnson 2023)
 
 
@@ -335,7 +339,7 @@ plot(fit3,
 
 ##### What is 'move persistence'? 
 
-Move persistence is an index of movement behaviour and is a continuous value between 0-1. The value represents changes in movement pattern for that individual based on autocorrelation in speed and direction (see details [here](https://esajournals.onlinelibrary.wiley.com/doi/10.1002/ecy.2566)) We can look at the patterns in this metric for each tracked individual spatially and over the tracking period. Lower move persistence values are related to slower movements that are often associated with area restricted searching behaviours often associated with foraging, with higher move persistence values representing more linear movements that are associated with migratory behaviours. 
+Move persistence is an index of movement behaviour and is a continuous value between 0-1. The value represents changes in movement pattern for that individual based on autocorrelation in speed and direction (see details [here](https://esajournals.onlinelibrary.wiley.com/doi/10.1002/ecy.2566)). We can look at the patterns in this metric for each tracked individual spatially and over the tracking period. Lower move persistence values are related to slower movements that are often associated with 'area restricted searching behaviours' often associated with foraging, with higher move persistence values representing more linear movements that are associated with migratory behaviours. 
 Since we ran the 'mp' model, we now have values of move persistence for each predicted location and can explore a bit more into our animal's movement behaviours. 
 
 

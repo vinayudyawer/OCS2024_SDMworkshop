@@ -27,11 +27,18 @@ editor_options:
 <br>
 
 
-This final session brings together what we've learned in the last three sessions and puts them all together! We will now focus on integrating telemetry data with 
-species distribution models, enabling the creation of comprehensive distribution maps and the analysis of how environmental variables influence species presence and absence.
+In session 2, we learned to develop state-space models to clean your messy satellite telemetry data, and to use those data to inform movement behaviour. The move persistance
+parameter can provide information on 'Area restricted searching' behaviour and migratory behaviour. In session 3, we learned how to use spatial occurrence data and environmental
+data to build species distribution models. Here we can bring them both together to develop SDMs that incorporate movement behaviours. Combining these two steps can create more
+complexities in analytic processes, so tread carefully! Here we will to through a ***very*** simple example of using processed satellite tracking data to develop species distribution
+models. The tracking and environmental data used here are just simple examples, and are may not be the most biologically relevant to inform the distribution of our species,
+whale sharks (*Rhincodon typus*), but this tutorial will show you the technique to use these data to develop spatial models. Lets get started! 
 
+<br>
 
 ```{r, message=FALSE, warning=FALSE}
+## Lets load up some useful packages
+
 library(tidyverse)
 library(terra)
 library(ggspatial)
@@ -44,21 +51,35 @@ library(mgcViz)
 
 ```
 
-## Input occurrence data
+<br><br>
+
+#### Input occurrence, absence and environmental data
+
+------------------------------------------------------------------------------------------------------------------------------------------------------
+
 
 ```{r, eval=FALSE}
-tracks <- read_csv('https://raw.githubusercontent.com/vinayudyawer/OCS2024_SDMworkshop/main/data/session_4/track_data.csv')
+## Lets upload the cleaned up track data we processed in Session 2
+tracks <- 
+  read_csv('https://raw.githubusercontent.com/vinayudyawer/OCS2024_SDMworkshop/main/data/session_4/track_data.csv')
 
-null_tracks <- read_csv('https://raw.githubusercontent.com/vinayudyawer/OCS2024_SDMworkshop/main/data/session_4/null_data.csv')
+## Lets also upload the null tracks we simulated in Session 2 
+null_tracks <- 
+  read_csv('https://raw.githubusercontent.com/vinayudyawer/OCS2024_SDMworkshop/main/data/session_4/null_data.csv')
 
-background <- read_csv('https://raw.githubusercontent.com/vinayudyawer/OCS2024_SDMworkshop/main/data/session_4/bg_data.csv')
+## Including the simulated tracks, we can also use background data (random points within the model extent)
+background <- 
+  read_csv('https://raw.githubusercontent.com/vinayudyawer/OCS2024_SDMworkshop/main/data/session_4/bg_data.csv')
 
-model_extent <- vect("https://raw.githubusercontent.com/vinayudyawer/OCS2024_SDMworkshop/main/data/session_3/mod_ext.GeoJSON")
+## And finally the spatial extent of our model
+model_extent <- 
+  vect("https://raw.githubusercontent.com/vinayudyawer/OCS2024_SDMworkshop/main/data/session_3/mod_ext.GeoJSON")
 
 ```
 
+<br>
 
-# quick plot to show the presence and pseudo absences
+Lets now produce a quick plot to show the presence (red), pseudo-absences (pink) and background (grey) datasets:
 
 ```{r, eval=FALSE}
 ggplot() +
@@ -73,8 +94,12 @@ ggplot() +
 
 ![](images/session_4/1_plot.png)
 
+<br><br>
 
-## Input environmental data
+#### Input environmental data
+
+------------------------------------------------------------------------------------------------------------------------------------------------------
+
 
 ```{r, eval=FALSE}
 env_stack <- rast("https://raw.githubusercontent.com/vinayudyawer/OCS2024_SDMworkshop/main/data/session_3/env_layers.tif")
@@ -87,7 +112,17 @@ plot(env_stack)
 
 ![](images/session_4/2_envplot.png)
 
-## extract environmental data for each occurrence, pseudo-absence and background point
+
+<br><br>
+
+#### Extract environmental data for each occurrence, pseudo-absence and background point
+
+------------------------------------------------------------------------------------------------------------------------------------------------------
+
+Now that we have both the spatial point data and the environmental predictor data, we can use the `terra` package to overlay the vector point
+data (a `vect()` object) and the rasterised envionmental data (a `rast()` object). `terra` allows us to quickly conduct overlap functions
+that can quickly extract the four environemntal predictors at each spatial points.
+
 
 ```{r, eval=FALSE}
 
@@ -109,9 +144,10 @@ bg_env <-
 
 ```
 
+<br>
 
-
-# combine into a single data frame to allow for visualising and modelling
+Now that we have all the environmental data extracted, we can combine all the seperate datasets into a single data frame to allow for 
+easier visualisation, exploration and modelling:
 
 ```{r, echo=FALSE, message=F}
 model_data <- read_csv('https://raw.githubusercontent.com/vinayudyawer/OCS2024_SDMworkshop/main/data/session_4/model_data.csv')
@@ -125,9 +161,18 @@ model_data <-
   filter_at(vars(bathymetry, current_velocity, mixed_layer_depth, temperature), all_vars(!is.na(.)))
 
 ```
+```{r, message=FALSE}
+model_data
+```
 
+<br><br>
 
-# lets look at the distrutbutions of the environmental variables
+#### Explore the distributions of the predictor variables
+
+------------------------------------------------------------------------------------------------------------------------------------------------------
+
+Lets look at the distributions of the environmental variables. The quickest and easiest way to look at their distribution is to build quick
+histograms in `ggplot2`:
 
 ```{r, eval=FALSE}
 model_data %>% ggplot(aes(x = bathymetry)) + geom_histogram() + theme_bw() +
@@ -139,7 +184,17 @@ model_data %>% ggplot(aes(x = mixed_layer_depth)) + geom_histogram() + theme_bw(
 
 ![](images/session_4/3_plot.png)
 
-# transform data to correct skewness in variables
+<br>
+
+As you can see, a few of the variables are highly skewed! so lets use some simple transformation techniques to normalise our data.
+Data transformation can take many forms, and can be simple (like here), or can be more complex. There are several ways to transform
+your data to fit a normal distribution to build better models, and there are other techniques and modelling frameworks that can account
+for skewed and non-normal data. Its up to you to do your research to figure out if simple transformation is enough, or if you need to 
+consider more complex modelling frameworks to account for skewness or non-uniformity in your datasets.
+
+Here we will transform the current velocity, temprature and mixed layer depth data to quickly correct skewness in variables. 
+
+
 
 ```{r, message=FALSE}
 trans_data <-
@@ -152,6 +207,8 @@ trans_data <-
 
 
 
+Now lets plot that again to check if the transformations have corrected the skewness in the data:
+
 ```{r, eval=FALSE}
 trans_data %>% ggplot(aes(x = bathymetry)) + geom_histogram() + theme_bw() +
 trans_data %>% ggplot(aes(x = temperature)) + geom_histogram() + theme_bw() +
@@ -162,8 +219,13 @@ trans_data %>% ggplot(aes(x = mixed_layer_depth)) + geom_histogram() + theme_bw(
 
 ![](images/session_4/4_plot.png)
 
+This looks a little bit better!! 
 
-## we also have to transform the env_stack
+
+Now that we have figured out which transformations are needed, we also have to transform the data in our rasterised `env_stack`
+dataset, so our predictions take the transformed data into account. `terra` allows you to transform your raster data very quickly
+and easily:
+
 
 ```{r, eval=FALSE}
 
@@ -179,12 +241,19 @@ plot(env_trans)
 
 ![](images/session_4/5_transplot.png)
 
+<br><br>
 
+#### Visualise the ecological niche
 
-# lets visualise the data in environmental space
+------------------------------------------------------------------------------------------------------------------------------------------------------
+
+Now that our environmental data have been transformed, we can try and visualise the environmental niche. Lets use the very useful `plotly` package to
+visualise the data in 3D environmental space. 
 
 
 ```{r, out.width='100%'}
+library(plotly)
+
 trans_data %>% 
   plot_ly(x = ~bathymetry, 
         y = ~temperature,
@@ -195,9 +264,20 @@ trans_data %>%
 ```
 
 
+Have a look at the 3D plot above and see how the background and pseudo-absence data define different aspects of
+the environmental space to allow further models to better define the niche of the occurrence data.
 
 
-## split data into test and train datasets
+<br><br>
+
+#### Creating a Species Distribution Model (SDM)
+
+------------------------------------------------------------------------------------------------------------------------------------------------------
+
+Now that we have all our input data, lets configure our transformed model data (`trans_data`) into a training dataset (*to build the model*) and a testing
+dataset (*to evaluate the model*). Again, there are several ways to do this, and here we will use a simple ***k-fold cross-validation*** technique to evaluate
+our model, but this may not be relevant in some cases, especially when using autocorrelated data (like tracking data!).
+
 
 ````{r, eval=FALSE}
 
@@ -219,29 +299,44 @@ test_absence <-
 
 ```
 
+<br>
+
+##### ***Building the model***
+
+In Session 3, we talked about several modelling algorithms used to build SDMs. One of the frameworks we discussed was using a non-linear model using a Generalised
+Additive Model (GAM) to incorporate non-linear relationships between the probability of presence and environmental predictor. Here since we have multiple individually tracked
+animal data, the occurrence data we have collected is highly autocorrelated within each tracked individual. One way to account for this is using a Mixed model version of GAMs.
 
 
-## Now lets build a model
+Using a Generalized Additive Mixed Model (GAMM) to model SDMs with tracking data allows for the incorporation of individual variability as a 'random effect'. This approach 
+recognises that individuals within a species may exhibit unique behaviours and responses to environmental preditors. By treating individual identity as a random effect in 
+the model, GAMMs can account for this variability while still capturing the overall patterns of species distributions. This integration of individual-level data enhances the
+accuracy and ecological realism of SDMs, providing valuable insights into how individual behaviour influences species' spatial distributions and habitat preferences. We can build
+GAMMs using the same `mgcv` package we used in the last session. The process is slightly different though:
+
 
 ```{r, eval=FALSE}
 
 library(mgcv)
 
+## Lets build a GAMM with the simplist configuration of a non-linear model
 gamm_mod <- gamm(presence ~ s(bathymetry) + s(temperature) + 
                    s(current_velocity) + s(mixed_layer_depth), 
-                 data = training_data,
-                 random = list(id = ~id),
+                 data = training_data, ## training input data
+                 random = list(id = ~id), ## id as a random variable
                  method = "REML", 
-                 family = binomial("logit"))
+                 family = binomial("logit")) ## using a binomial framework
 
-## Lets seperate the GAM portion of the GAMM model 
+
+## Lets separate the GAM portion of the GAMM model 
 mod <- gamm_mod$gam
 
 ```
 
 
-
-## response curves
+Now that the model has run, we can explore the response curves of the GAMM using the very useful `mgcViz` package.
+We firt need to configure the model object so the package can plot out the response curves. The package however has a very 
+peculiar grammer of plotting (something similar to `ggplot2` but not quite!)
 
 ```{r, eval=FALSE}
 
@@ -262,6 +357,10 @@ print(
 ![](images/session_4/6_resp_curves1.png)
 
 
+<br>
+
+The `mgcViz` package can also help you explore the correlation between two variables simultaneously: 
+
 
 ```{r, eval=FALSE}
 
@@ -280,12 +379,18 @@ vis.gam(mod, view = c("mixed_layer_depth", "current_velocity"), theta = 145, phi
 
 ![](images/session_4/8_inter2.png)
 
+<br>
 
+##### ***Evaluating the model***
 
-## using the evaluate() function in the `dismo` package
+Similar to the last session, we can use the `dismo` package to evaluate the performance of our SDM. The 'evaluate()' function works here with our previously
+subsetted testing datasets. We can then use the evaluate object to plot the 'Receiver Operating Characteristic' of the model, and quantify the 'Area Under the
+Curve' (AUC) of the model. The ROC curve plots the true positive rate (sensitivity) against the false positive rate (1 - specificity) for different threshold 
+values. A perfect model would have an ROC curve that reaches the upper left corner of the plot (sensitivity = 1, specificity = 1), while a random guess would 
+result in a diagonal line from the bottom left to the top right (AUC = 0.5).
+
 
 ```{r, eval=FALSE}
-
 library(dismo)
 
 gamm_eval <- dismo::evaluate(p = test_presence, a = test_absence, model = mod)
@@ -296,9 +401,11 @@ plot(gamm_eval, "ROC", type = "l")
 
 ![](images/session_4/9_auc.png)
 
+<br>
 
+##### ***Model prediction***
 
-## We can predict and plot the model response (continuous value between 0 and 1)
+We can now predict and plot the model response (continuous value between 0 and 1)
 
 ```{r, eval=FALSE}
 gamm_predict <- terra::predict(env_trans, mod, type = "response")
@@ -321,8 +428,32 @@ plot(gamm_link > gamm_threshold)
 
 ![](images/session_4/10_gamm_map.png)
 
+<br><br>
 
-## modelling move persistance (g)
+#### Modelling move persistance ($\gamma_{t}$)
+
+------------------------------------------------------------------------------------------------------------------------------------------------------
+
+<style>
+div.blue { background-color:#e6f0ff; border-radius: 5px; padding: 20px;}
+</style>
+<div class = "blue">
+
+In session 2, we used the `aniMotum` package to built a move persistence model, to incorporate a continuous-valued behavioural index into our tracks. 
+The move persistence variable ($\gamma_{t}$). Move persistence is an index of movement behaviour and is a continuous value between 0-1. The value represents
+changes in movement pattern for that individual based on autocorrelation in speed and direction (see details 
+[here](https://ianjonsen.github.io/aniMotum/articles/Move_persistence_models.html)). Lower move persistence values are related to slower movements that are often 
+associated with area restricted searching behaviours often associated with foraging, with higher move persistence values representing more linear movements 
+that are associated with migratory behaviours.
+
+<br>
+
+We can use this continuous variable to look at how environmental variables influence 'area restricted behaviours' and migratory behaviours, and we can also
+spatially model it to identify potential 'migratory highways' and potential foraging and nursery areas. Here we will conduct a very simple version of this model,
+but if you want to see how this kind of modelling help define important areas for species [this](https://esajournals.onlinelibrary.wiley.com/doi/10.1002/ecy.2566) 
+is a good paper to dwelve deeper into the modeling framework.
+
+Lets use a simpler GAM model to explore the relationship between move persistence index and the environmental variables we have at hand:
 
 ```{r, warning=FALSE}
 
@@ -335,28 +466,34 @@ summary(mp_mod)
 
 ```
 
+<br>
 
-
-## explore the response curve
-
+We can now use the `visreg` package to explore the response curve of the model:
 
 ```{r, eval=FALSE}
-visreg::visreg(mp_mod, scale = "response", gg = T)
+visreg::visreg(mp_mod, scale = "response", partial = T,  gg = T)
 
 ```
 
 ![](images/session_4/11_mp_visreg.png)
 
+Similar to the previous model, we can also explore the relationship between two variables to move persistence
 
 ```{r, eval=FALSE}
 
 visreg2d(mp_mod, xvar = "mixed_layer_depth", yvar = "temperature", scale = "response", plot.type = "persp",
-         xlab = "Mixed Layer Depth (m)", ylab = "Sea Surface Temparature (˚C)", zlab = "Probability of presence",
+         xlab = "Mixed Layer Depth (m)", ylab = "Sea Surface Temparature (˚C)", zlab = "Move persistence",
          theta = 145, phi = 15, zlim = c(0,1))
 
 ```
 
 ![](images/session_4/12_mp_persp.png)
+
+<br>
+
+Finally, we can now predict the model across the larger spatial scale across our pre-defined model extent. ***But be careful about predicting too extensively outside the***
+***ecological space of our model!***   
+
 
 ```{r, eval=FALSE}
 
@@ -368,6 +505,16 @@ plot(mp_resp)
 
 
 ![](images/session_4/13_mp_cont.png)
+
+<br>
+
+There are several ways to modify this model, further refine it and use more appropriate ways to evaluate these kinds of models. However, we have run out of
+time! but hopefully this workshop has given you a good starter to the world of animal tracking, behavioural classification, species distribution modelling,
+and combining all of these aspects to build ecologically informative maps. Happy coding!
+
+<br>
+
+</div>
 
 <br>
 
