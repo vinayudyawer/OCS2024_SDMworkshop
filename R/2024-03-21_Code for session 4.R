@@ -91,21 +91,21 @@ model_data %>% ggplot(aes(x = mixed_layer_depth)) + geom_histogram() + theme_bw(
 
 
 # transform data to correct skewness in variables
-trans_data <-
-  model_data %>% 
-  mutate(current_velocity = log10(current_velocity),
-         temperature = exp(temperature),
-         mixed_layer_depth = log10(mixed_layer_depth))
-
-
-trans_data %>% ggplot(aes(x = bathymetry)) + geom_histogram() + theme_bw() +
-trans_data %>% ggplot(aes(x = temperature)) + geom_histogram() + theme_bw() +
-trans_data %>% ggplot(aes(x = current_velocity)) + geom_histogram() + theme_bw() +
-trans_data %>% ggplot(aes(x = mixed_layer_depth)) + geom_histogram() + theme_bw()
-
+# trans_data <-
+#   model_data %>% 
+#   mutate(current_velocity = log10(current_velocity),
+#          temperature = exp(temperature),
+#          mixed_layer_depth = log10(mixed_layer_depth))
+# 
+# 
+# trans_data %>% ggplot(aes(x = bathymetry)) + geom_histogram() + theme_bw() +
+# trans_data %>% ggplot(aes(x = temperature)) + geom_histogram() + theme_bw() +
+# trans_data %>% ggplot(aes(x = current_velocity)) + geom_histogram() + theme_bw() +
+# trans_data %>% ggplot(aes(x = mixed_layer_depth)) + geom_histogram() + theme_bw()
+# 
 # lets visualise the data in environmental space
 
-trans_data %>% 
+model_data %>% 
   plot_ly(x = ~bathymetry, 
         y = ~temperature,
         z = ~current_velocity,
@@ -113,21 +113,45 @@ trans_data %>%
   add_markers()
 
 
+## split data into test and train datasets
+?kfold
+
 ## Now lets build a model
-library(gamm4)
-mod_gamm <- gamm(presence ~ s(bathymetry) + s(temperature) + 
+library(mgcv)
+
+gamm_mod <- gamm(presence ~ s(bathymetry) + s(temperature) + 
                    s(current_velocity) + s(mixed_layer_depth), 
-                 data = trans_data,
+                 data = model_data,
                  random = list(id = ~id),
-                 method = "REML", niterPQL = 5,
+                 method = "REML", niterPQL = 1,
                  family = binomial("logit"))
 
 
+mod <- gamm_mod$gam
+
+## response curves
+library(mgcViz)
+
+mod_viz <- getViz(mod)
+
+print(
+  plot(mod_viz) + 
+    l_ciPoly(alpha = 0.5) + 
+    l_fitLine() + 
+    l_rug() +
+    theme_bw(), 
+  pages = 1)
 
 
+## using the evaluate() function in the `dismo` package
+gamm_eval <- dismo::evaluate(p = test_presence, a = test_absence, model = mod)
+
+plot(gam_eval, "ROC", type = "l")
 
 
+pred <- terra::predict(env_stack, mod)
 
+plot(pred)
 
 
 
