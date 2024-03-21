@@ -225,7 +225,7 @@ not found here!), this is very valuable for SDM modelling. However, in most real
 absence data known as 'pseudo'-absences. Pseudo-absence data are generated using various techniques such as random sampling from areas where the species has not been 
 observed, environmental similarity methods, or background sampling from the study area.
 
-In R, generating pseudo-absence data can be done using functions like 'randomPoints()' from the `dismo` package or 'st_sample()' function from the `sf` package. Additionally,
+In R, generating pseudo-absence data can be done using functions like `randomPoints()` from the `dismo` package or 'st_sample()' function from the `sf` package. Additionally,
 some SDM packages in R, such as `dismo`, `biomod2`, and `MaxEnt`, include built-in functions for generating pseudo-absence data as part of their modeling workflow.
 
 It's important to note that the selection and quality of pseudo-absence data can significantly impact model performance and interpretation. Careful consideration should be 
