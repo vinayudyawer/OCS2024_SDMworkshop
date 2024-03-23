@@ -1088,7 +1088,7 @@ mapview::mapshot(map2, url = "Spatial_Interactive.html", remove_controls = NULL,
 <br>
 
 In this session we will introduce you to the `aniMotum` package, a valuable tool for analysing animal movement data. In this session we will work with a 
-small subset of fictionalized tracking data that closely mimic Whale sharks tracked in the Indian Ocean. The data 
+small subset of fictionalized tracking data that closely mimic Whale Sharks tracked in the Indian Ocean. The data 
 consists of tracking data from six Whale Sharks (*Rhincodon typus*) tagged with ARGOS tags at the Thaa Atoll, the Maldives. The data shows the 
 large oceanic dispersal these species conduct across the Indian Ocean. The data have been processed using a Least-Squares algorithm, and each position
 has an estimated error expressed as an ARGOS location class. We will use this dataset to further refine positions, and predict positions at regular 
@@ -1235,7 +1235,7 @@ tagdat <- raw_data %>%
               lon = LONGITUDE, 
               lat = LATITUDE)
 
-# Using format_data from the aniMotum Package) 
+# Or alternatively, using format_data from the aniMotum Package) 
 tagdat2 <- format_data(
   raw_data,
   id = "ANIMALID",
@@ -1294,7 +1294,7 @@ For our data, we will use the Continuous-time move persistence model (‘mp’ o
 # Fitting a Continuous-time move persistence (MP) model to our data 
 fit <-
   fit_ssm(x = tagdat, 
-          vmax = 1.5, ## maximum speed of whale sharks (in m/s)
+          vmax = 1.5, ## average speed of whale sharks (in m/s)
           model = "mp", ## Move persistence model
           time.step = 12, ## predict positions every 12 hours
           control = ssm_control(verbose = 0)) ## Lets turn off the progress text
@@ -1400,7 +1400,7 @@ plot(fit3,
 
 ##### What is 'move persistence'? 
 
-Move persistence is an index of movement behaviour and is a continuous value between 0-1. The value represents changes in movement pattern for that individual based on autocorrelation in speed and direction (see details [here](https://esajournals.onlinelibrary.wiley.com/doi/10.1002/ecy.2566)). We can look at the patterns in this metric for each tracked individual spatially and over the tracking period. Lower move persistence values are related to slower movements that are often associated with 'area restricted searching behaviours' often associated with foraging, with higher move persistence values representing more linear movements that are associated with migratory behaviours. 
+Move persistence is an index of movement behaviour and is a continuous value between 0-1. The value represents changes in movement pattern for that individual based on autocorrelation in speed and direction (see details [here](https://esajournals.onlinelibrary.wiley.com/doi/10.1002/ecy.2566)). We can look at the patterns in this metric for each tracked individual spatially and over the tracking period. Lower move persistence values are related to slower movements that are often associated with 'area restricted searching behaviours' such as foraging, while higher move persistence values represent more linear movements that are associated with migratory behaviours. 
 Since we ran the 'mp' model, we now have values of move persistence for each predicted location and can explore a bit more into our animal's movement behaviours. 
 
 
@@ -1708,7 +1708,7 @@ Here's a quick overview:
 ***Overview/Conceptualisation -*** One of the key steps in developing SDMs is first conceptualising the objectives, available data, and the relevance of SDMs
 for your research question. This includes understanding if SDMs are going to tell you what you need to answer your hypothesis. Similarly, if you do not have 
 access to relevant data, then the outputs of SDMs may not be useful (the old GIGO adage: garbage in, gargabe out!). In this step, it is worth 
-overviewing and conceptialising the objectives of the modelling excercise, and asscertain if this model is relevant for the taxon, location,
+overviewing and conceptialising the objectives of the modelling excercise, and ascertain if this model is relevant for the taxon, location,
 spatial and temporal scale of your study system.
 
 <br>
@@ -1904,7 +1904,7 @@ removing highly correlated variables or using regularization techniques to mitig
 
 Here we have accessed four environmental variables from the [Bio-ORACLE](https://bio-oracle.org) dataset, including **bathymetry**, **current velocity**, **mixed layer depth** and 
 **sea surface temperature**. We have selected just four variables to simplify this excersise, but keep in mind you will need to have a closer look at variables when modelling your
-own SDM to make sure the variables are ecologically relevant to your species. Similarly, conducting pairwise correlations should be conducted to make sure environmental variables
+own SDM to make sure the variables are ecologically relevant to your species. Similarly, pairwise correlations should be conducted to make sure environmental variables
 are not overly correlated, which will influence model outputs.
 
 
@@ -2461,7 +2461,7 @@ plot(w_average_threshold_map)
 In session 2, we learned to develop state-space models to clean your messy satellite telemetry data, and to use those data to inform movement behaviour. The move persistance
 parameter can provide information on 'Area restricted searching' behaviour and migratory behaviour. In session 3, we learned how to use spatial occurrence data and environmental
 data to build species distribution models. Here we can bring them both together to develop SDMs that incorporate movement behaviours. Combining these two steps can create more
-complexities in analytic processes, so tread carefully! Here we will to through a ***very*** simple example of using processed satellite tracking data to develop species distribution
+complexities in analytic processes, so tread carefully! Here we will go through a ***very*** simple example of using processed satellite tracking data to develop species distribution
 models. The tracking and environmental data used here are just simple examples, and are may not be the most biologically relevant to inform the distribution of our species,
 whale sharks (*Rhincodon typus*), but this tutorial will show you the technique to use these data to develop spatial models. Lets get started! 
 
