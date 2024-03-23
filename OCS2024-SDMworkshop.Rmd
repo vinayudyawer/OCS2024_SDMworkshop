@@ -126,11 +126,12 @@ div.blue { background-color:#e6f0ff; border-radius: 5px; padding: 20px;}
 The course resources will be emailed to you prior to the workshop. However, you can also access the data and scripts we will work through in this
 course following these steps:
 
-**1. Download the course walkthrough and code from [this link](https://raw.githubusercontent.com/vinayudyawer/OCS2024_SDMworkshop/main/R/OCS2024-SDMworkshop.zip).**
+**1. Download the course materials from [this link](https://raw.githubusercontent.com/vinayudyawer/OCS2024_SDMworkshop/main/R/OCS2024-SDMworkshop.zip).**
 
-**2. Unzip the downloaded file. It should have the following folder and a html file:**
+**2. Unzip the downloaded file. It should have the following two folders and a html file:**
 
 - [***Code***]{style="color:darkblue"} *folder*
+- [***Data***]{style="color:darkblue"} *folder*
 - [***OCS2024-SDMworkshop.html***]{style="color:darkblue"} *file*
 
 **3. Save all the files in a location on your computer you can find again during the workshop**
@@ -243,9 +244,9 @@ install.packages("aniMotum",
 
 ```
 
-When downloading from **GitHub**, the R console will ask you if it should also update packages. In most cases, you can skip updating packages (**option [3]**)
-as this often stalls the whole process of downloading the package. If there are package dependencies, these will often be downloaded automatically (but not
-always!). If you want to update the packages you have, you can do it separately.
+When downloading from **GitHub**, the R console will sometimes ask you if it should also update other packages. In most cases, you can skip updating 
+other packages (**option [3]**) as this often stalls the whole process of downloading the package you want. If there are package dependencies, these 
+will often be downloaded automatically (but not always!). If you want to update the other packages you have, you can do it separately.
 
 </div>
 
@@ -271,7 +272,7 @@ always!). If you want to update the packages you have, you can do it separately.
 
 <br>
 
-This session will address the fundamentals of data pre-processing and visualisation, utilising `lubridate`, `tidyverse`, `sf`, `ggspatial`, and `gganimate` **R** packages. Participants will learn efficient data cleaning methods, organisation of telemetry data, and the creation of geospatial visualisations to gain insights into animal distributions and movements.
+This session will address the fundamentals of data pre-processing and visualisation, utilising `lubridate`, `tidyverse`, `sf`, `ggspatial`, and `gganimate` **R** packages. Participants will learn efficient data cleaning methods, organisation of data, and the creation of geospatial visualisations to gain insights into animal distributions and movements.
 
 
 <br><br>
@@ -280,15 +281,15 @@ This session will address the fundamentals of data pre-processing and visualisat
 
 ------------------------------------------------------------------------------------------------------------------------------------------------------
 
-Before we can analyze these data, we first need to read the dataset into **R**. The 'comma separated value' (.csv) format is a popular and effective way to export large data sets. This format is a preferred way to store your data, and easily import into R. 
+Before we can analyze these data, we first need to read the dataset into **R**. The 'comma separated value' (.csv) format is a popular and effective way to export large data sets. This format is a preferred way to store your data, and easily imported into R. 
 
-In this session, we will explore how to import a .csv file using base R and using tidyverse. 
+In this session, we will explore how to import a .csv file using 'base' R and using `tidyverse`. 
 
 <br>
 
 ##### One A: Base R
 
-A .csv file can be imported into R using the read.csv base function, and by telling R where the file is located on your computer. 
+A .csv file can be imported into R using the `read.csv` base function, and by telling R where the file is located on your computer. 
 
 ```{r, message=FALSE}
 # Load the whale shark data using the 'read.csv' function from your local repository
@@ -317,7 +318,7 @@ So far everything is looking good! But you'll notice that our 'DATE' field has b
 
 `lubridate` package 
 ```{r, message=FALSE, warning=FALSE}
-#First, lets load up lubridate using the library package. 
+#First, lets load up lubridate using the library function 
 library(lubridate)
 
 # Now we can use the 'ymd_hms' function to reformat our 'DATE' field as a POSIXct. 
@@ -334,7 +335,7 @@ class(whaleshark$DATE)
 
 The `lubridate` package is AMAZING. Aside from changing date/time formats easily, you can also convert between various time zones. In this case, it's not super important for our animal tracking data to be in a specific time zone, but you may run into a scenario where your data was collected in UTC, but you need it in a local time. 
 
-This may be especially relevant later on when creating species distribution models' when correlating the time an animal was present with environmental factors.
+This may be especially relevant later on when correlating a defined animal behaviour with the time of day.
 
 ```{r, message=FALSE}
 # Lets practice by creating a new field with the time zone as the local time (Indian Ocean/Maldives UTC +5:00). 
@@ -361,7 +362,7 @@ First lets load up `tidyverse`.
 library(tidyverse)
 ```
 
-Now lets see an example of it's usefulness. Above, we loaded the data using base r's read.csv() function and then had to change the DATE column into a datetime object by loading up lubridate. The tidyverse version is read_csv(). The main difference is that data will be imported as a tibble data frame. The read_csv() package will guess what format the data are in and all the columns will be imported already in their correct format. 
+Now lets see an example of it's usefulness. Above, we loaded the data using base Rs `read.csv()` function and then had to change the DATE column into a datetime object by loading up `lubridate`. The tidyverse version is `read_csv()`. The main difference is that data will be imported as a tibble data frame. The `read_csv()` package will guess what format the data are in and all the columns will be imported already in their correct format. 
 
 ```{r, message=FALSE}
 # whaleshark <- read_csv('/location of data/Whalesharks_Maldives.csv')
@@ -381,14 +382,14 @@ As you can see, the date field is already a 'dttm' (date time) object. How cleve
 
 ------------------------------------------------------------------------------------------------------------------------------------------------------
 
-Now that we've loaded our tracking dataset, let's explore the data! We are going to use the read_csv() version of the data, where the 'DATE' field is already a 'dttm'. 
+Now that we've loaded our tracking dataset, let's explore the data! We are going to use the `read_csv()` version of the data, where the 'DATE' field is already a 'dttm'. 
 
-The easiest way to do explore our data is by using pipes, which we can get either from base r in the format '|>' or from tidyverse (originally from the magrittr package) in the format'%>%'. While both these pipes are *essentially* do the same function, there can sometimes be crucial differences. However, for most coders, the differences are unimportant and you can choose which pipe you prefer. 
+The easiest way to do explore our data is by using pipes, which we can get either from base r in the format `|>` or from tidyverse (originally from the `magrittr` package) in the format `%>%`. While both these pipes are *essentially* do the same function, there can sometimes be crucial differences. However, for most coders, the differences are unimportant and you can choose which pipe you prefer. 
 
 If you're a more advanced coder, you can read about the differences in pipes [here](https://www.tidyverse.org/blog/2023/04/base-vs-magrittr-pipe/) before choosing your piping preference. 
 
-For the purpose of this workshop, we will be using the '%>%' pipe, because this is what most people are familiar with. 
-%>% is an infix operator. This means it takes two operands, left and right and ‘pipes’ the output of the last expression/function (left) forward to the first input of the next function (right).
+For the purpose of this workshop, we will be using the `%>%` pipe, because this is what most people are familiar with. 
+`%>%` is an infix operator. This means it takes two operands, left and right and ‘pipes’ the output of the last expression/function (left) forward to the first input of the next function (right).
 
 For example, above we used the code 'class(whaleshark)' to see what class our data was in. In tidyverse, we can do this same operation using a pipe...
 
@@ -399,7 +400,7 @@ whaleshark %>% class() # In English: take the 'whaleshark' data frame and run th
 
 <br><br>
 
-***Benefits of pipes %>%***
+***Benefits of pipes `%>%`***
 
 * Functions flow in natural order that tells story about data.
 * Code effects are easy to reason about by inserting View() or head() into pipe chain.
@@ -444,7 +445,7 @@ whaleshark %>%
 
 Pipes can also be used to pre-process our data before plotting them. Lets now use pipes to create a simple plot of number of detections of M-150 over time.
 
-```{r, message=FALSE, fig.align = 'center', fig.height = 4, fig.width = 10}
+```{r, message=FALSE, fig.align = 'center', fig.height = 5, fig.width = 10}
 whaleshark %>% # take the whale shark df
   mutate(date = date(DATE)) %>% # then create a new column called date from the date time column
   subset(ANIMALID == "M-150") %>% # then subset to just the data from shark M-150 
@@ -554,7 +555,7 @@ By assigning whaleshark <- before the operations, we have now made a permanent c
 
 <br><br>
 
-#### Four: Data visualization using `ggplot`
+#### Four: Data visualization using `ggplot2`
 
 ------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -562,7 +563,7 @@ By assigning whaleshark <- before the operations, we have now made a permanent c
 
 The system provides mappings from your data to aesthetics which are used to construct beautiful plots.
 
-Documentation for ggplot2 can be found [here](https://ggplot2.tidyverse.org/).
+Documentation for `ggplot2` can be found [here](https://ggplot2.tidyverse.org/).
 
 There is also this awesome 
 [cheetsheet](https://rstudio.github.io/cheatsheets/html/data-visualization.html?_gl=1*hd7s9e*_ga*OTE3OTY4MTUzLjE2OTMyODk4OTM.*_ga_2C0WZ1JHG0*MTY5MzQ1NDM4NS4yLjAuMTY5MzQ1NDM4NS4wLjAuMA) 
@@ -597,7 +598,7 @@ Building blocks of a graph include:
 
 **Aesthetic Mapping**
 
-In `ggplot2`, aesthetic means “something you can see”. Aesthetic mapping (i.e., with aes()) only says that a variable should be mapped to an aesthetic. It doesn’t say how that should happen. For example, when mapping a variable to shape with aes(shape = x) you don’t say what shapes should be used. Similarly, aes(color = z) doesn’t say what colors should be used. Describing what colors/shapes/sizes etc. to use is done by modifying the corresponding scale.
+In `ggplot2`, aesthetic means “something you can see”. Aesthetic mapping (i.e., with aes()) only says that a variable should be mapped to an aesthetic. It doesn’t say how that should happen. For example, when mapping a variable to shape with `aes(shape = x)` you don’t say what shapes should be used. Similarly, `aes(color = z)` doesn’t say what colors should be used. Describing what colors/shapes/sizes etc. to use is done by modifying the corresponding scale.
 
 In `ggplot2` scales include:
 
@@ -629,7 +630,7 @@ help.search("geom_", package = "ggplot2")
 
 ##### Basic plotting and data visualization 
 
-In the script below, we call in the whaleshark dataset, perform some operations on it, and then pipe it into a ggplot() function, in this case we are using geom_boxplot() to create a box plot
+In the script below, we call in the whaleshark dataset, perform some operations on it, and then pipe it into a `ggplot()` function, in this case we are using `geom_boxplot()` to create a box plot
 
 ```{r, message=FALSE, fig.align = 'center', fig.height = 3, fig.width = 10}
 whaleshark %>%
@@ -699,7 +700,7 @@ For simplicity, each projection can be referred to by a unique ID from the **Eur
 
 ***Using the `sf` package to create spatial objects***
 
-The sf package makes it easy to convert any data frame into a spatial object which we can then plot and explore using other packages. The conversion from data frame to a spatial object can be done easily using the `st_as_sf()` function. Lets convert two data sets into spatial objects so we can plot them out. The main information we need to provide to convert it to a spatial object will be the names of the columns that denote the coordinates, and the CRS for the data. Our whaleshark data were recorded in the WGA 84 geographic datum in decimal degrees, which is the equivalent EPSG code of [4326](https://epsg.io/4326)
+The `sf` package makes it easy to convert any data frame into a spatial object which we can then plot and explore using other packages. The conversion from data frame to a spatial object can be done easily using the `st_as_sf()` function. Lets convert two data sets into spatial objects so we can plot them out. The main information we need to provide to convert it to a spatial object will be the names of the columns that denote the coordinates, and the CRS for the data. Our whaleshark data were recorded in the WGA 84 geographic datum in decimal degrees, which is the equivalent EPSG code of [4326](https://epsg.io/4326)
 
 First lets load the sf package 
 ```{r, message=FALSE, warning=FALSE}
@@ -719,7 +720,7 @@ whaleshark_sf <-
 
 ```
 
-Now if you look at the sf objects we've created, it gives information of what kind of spatial object we made (POINTS) and it will provide information on what CRS has been assigned to the coordinate data set. The data itself should look very similar to a tibble object, which should be familiar to you now. The addition of the geometry column should give you a hint that it is now a spatial point object. 
+Now if you look at the `sf` objects we've created, it gives information of what kind of spatial object we made (POINTS) and it will provide information on what CRS has been assigned to the coordinate data set. The data itself should look very similar to a tibble object, which should be familiar to you now. The addition of the geometry column should give you a hint that it is now a spatial point object. 
 
 ```{r, message=FALSE, warning=FALSE}
 head(whaleshark_sf)
@@ -759,7 +760,7 @@ div.blue { background-color:#e6f0ff; border-radius: 5px; padding: 20px;}
 </style>
 <div class = "blue">
 
-**Fun fact:** By default, the st_cast() function will try to unite the resulting geometry. If our data is not in chronological order or if we have multiple animals, the resulting paths will not resemble the chronological movements of individuals over time, rather it will go by the default organisation of the data. It's good practice to first 'arrange' by the date time field, then to specify `do_union = FALSE` to avoid this behaviour. If you're curious, try running the code with and without the arrange and summarise line to see how this changes the resulting path outputs.  
+**Fun fact:** By default, the `st_cast()` function will try to unite the resulting geometry. If our data is not in chronological order or if we have multiple animals, the resulting paths will not resemble the chronological movements of individuals over time, rather it will go by the default organisation of the data. It's good practice to first 'arrange' by the date time field, then to specify `do_union = FALSE` to avoid this behaviour. If you're curious, try running the code with and without the arrange and summarise line to see how this changes the resulting path outputs.  
 
 </div>
 
@@ -944,7 +945,7 @@ ggplot() +
 
 You'll notice that only the POINT data has animated, the PATH data is stagnant. This is because when we transformed our 'sf' object into a 'path' it preserves the entire path as one object. This makes using the `layer_spatial()` code really handy for visualising **static** maps, but less so for **dynamic** ones. 
 
-We can solve this by using the `geom_spatial_*()` function from `ggplot2` instead of `layer_spatial`. In the below example, we provide `gganimate` with the point dataset and use the *transition_reveal function instead to animate both the POINT and PATH data. 
+We can solve this by using the `geom_spatial_*()` function from `ggplot2` instead of `layer_spatial`, and using a different type of transition function. In the below example, we provide `gganimate` with the point dataset and use the `transition_reveal()` function instead to animate both the POINT and PATH data. 
 
 ```{r, eval=FALSE}
 
@@ -983,7 +984,7 @@ div.blue { background-color:#e6f0ff; border-radius: 5px; padding: 20px;}
 </style>
 <div class = "blue">
 
-***Fun fact:*** If set to TRUE, mapview uses a file format called flatgeobuf (fgb). FGB allows the resultant map to load faster because the html output doesn't contain the data directly, more so a snapshot of the data. This is super handy when working with large datasets! The trade off is that this optimization can sometimes leads to issues with mapping. If you're curious go ahead and try the following maps with 'fgb = TRUE' and 'fgb = FALSE' to see the difference for yourself! 
+***Fun fact:*** If `fgb` is set to TRUE, mapview uses a file format called flatgeobuf (fgb). FGB allows the resultant map to load faster because the html output doesn't contain the data directly, more so a snapshot of the data. This is super handy when working with large datasets! The trade off is that this optimization can sometimes leads to issues with mapping. If you're curious go ahead and try the following maps with `fgb = TRUE` and `fgb = FALSE` to see the difference for yourself! 
 
 </div>
 
@@ -1171,7 +1172,7 @@ the package you can explore the vignettes provided with the package, and also ex
 
 <br>
 
-The package has a clear workflow, and we can walk through the first 4 steps to process and visualise our data:
+The package has a clear workflow, and we can walk through the first 4 steps to process and visualise our data, and finally use the package to simulate tracks to use in our subsequent sessions:
 
 <br>
 
